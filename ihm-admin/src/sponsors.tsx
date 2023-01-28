@@ -1,16 +1,20 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
-import './index.css'
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useQuery } from "react-query";
+import "./index.css";
+import { useService } from "./services";
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path='/sponsors' element={<Sponsors/>}/>
-      </Routes>
-    </BrowserRouter>
-    <App />
-  </React.StrictMode>,
-)
+export const Sponsors = () => {
+  const service = useService();
+  const { data, isLoading, error } = useQuery("sponsors", () =>
+    service.getSponsors()
+  );
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{JSON.stringify(error)}</div>;
+  }
+
+  return <div>{JSON.stringify(data)}</div>;
+};
