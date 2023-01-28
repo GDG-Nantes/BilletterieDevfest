@@ -18,6 +18,8 @@ export const BilletWebApi = {
         let attendees: Attendee[] = (await axiosClientBilletWeb.get<Attendee[]>('attendees')).data;
 
         const commandes: { [id: string]: Commande } = {}
+
+        // On récupère d'abord toutes les demandes de partenariats
         attendees
             .filter(attendee => calculerTypeTicket(attendee.ticket) === 'PARTENAIRE')
             .forEach(attendee => {
@@ -26,19 +28,27 @@ export const BilletWebApi = {
                 }
             })
 
+        // On enrichi ensuite avec toutes les options qu'on trouve
         attendees.forEach(attendee => {
             const typeTicket = calculerTypeTicket(attendee.ticket)
             let commande: Commande | null = commandes[attendee.order_id]
-            if(commande == null && attendee.category !== 'Choix du stand'){
+
+            // Les sponsors peuvent avoir acheté une option après le premier achat qui contenait le partenariat
+            // dans ce cas là, le lien est fait par le champ entreprise
+            if (commande == null && attendee.category !== 'Choix du stand') {
                 commande = Object.values(commandes)
                     .find(commande => commande.acheteur.entreprise === attendee.custom_order.Entreprise) as Commande | null
 
+                // Si on trouve une commande fait par la même entreprise, on ajoute au montant et une note pour s'y retrouver
                 if (commande != null) {
                     commande.paiement.montantTotalTTC += parseInt(attendee.price)
                     commande.notes += `Liée à la commande ${attendee.order_ext_id}
                     `
                 }
             }
+
+            // Dans la plupart des cas, les options auront été prises avec le partenariat
+            // il suffit alors d'enrichir la commande existante
             if (commande != null) {
                 switch (typeTicket) {
                     case 'PLATINIUM':
@@ -46,6 +56,7 @@ export const BilletWebApi = {
                     case 'GOLD':
                     case 'SILVER':
                     case 'SPECIAL':
+                        // la condition permet de s'assurer qu'un sponsor déjà flagué PXL ne sera pas reflagué Platinium par exemple
                         if (commande.typePack === 'UNKNOWN') {
                             commande.typePack = typeTicket
                         }

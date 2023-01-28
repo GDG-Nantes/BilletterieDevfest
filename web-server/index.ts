@@ -7,7 +7,7 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 
-app.get('/', (req, res) => res.send('🏠'))
+app.get('/health', (req, res) => res.send({status: 'UP'}))
 
 app.get('/sponsors', async (req, res) => {
     let attendees = await BilletWebApi.getSponsors();
