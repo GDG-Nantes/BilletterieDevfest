@@ -3,10 +3,14 @@ service: admin
 threadsafe: true
 
 handlers:
-  - url: /
+  # Serve all static files with urls ending with a file extension
+  - url: /(.*\..+)$
+    static_files: dist/\1
+    upload: dist/(.*\..+)$
+
+    # catch all handler to index.html
+  - url: /.*
     static_files: dist/index.html
     upload: dist/index.html
-
-  - url: /(.*)
-    static_files: dist/\1
-    upload: dist/(.*)
+    http_headers:
+      cache-control: no-store
