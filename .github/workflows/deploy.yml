@@ -37,14 +37,15 @@ jobs:
       # Build/Deploy
 
       - run: npm ci
-      - run: npm run build
+      - run: |
+          export API_BASE_URL=https://web-server-dot-admin-338415.ew.r.appspot.com
+          npm run build
 
       - id: "deploy"
         name: "Deploy to App Engine"
         uses: "google-github-actions/deploy-appengine@v1"
         with:
           deliverables: "ihm-admin/admin.yaml"
-          promote: false
           version: ${{ steps.get_version.outputs.VERSION }}
 
   deploy-web-server:
@@ -83,5 +84,4 @@ jobs:
         uses: "google-github-actions/deploy-appengine@v1"
         with:
           deliverables: "web-server/web-server.yaml"
-          promote: false
           version: ${{ steps.get_version.outputs.VERSION }}

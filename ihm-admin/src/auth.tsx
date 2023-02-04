@@ -35,7 +35,6 @@ export const AuthenticationProvider: React.FC<
     if (storedCredential != null) {
       try {
         const tokenData = jwtDecode(storedCredential) as GoogleTokenData;
-        console.log(tokenData);
         if (tokenData.exp && tokenData.exp * 1000 > Date.now()) {
           return {
             credential: storedCredential,
