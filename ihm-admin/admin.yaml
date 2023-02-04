@@ -1,0 +1,12 @@
+runtime: python27
+service: admin
+threadsafe: true
+
+handlers:
+  - url: /
+    static_files: dist/index.html
+    upload: dist/index.html
+
+  - url: /(.*)
+    static_files: dist/\1
+    upload: dist/(.*)

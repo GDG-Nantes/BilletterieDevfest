@@ -3,10 +3,11 @@ import axios, { AxiosInstance } from "axios";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { useUser } from "./auth";
+import { CONFIG } from "./config";
 
 class Services {
   client: AxiosInstance;
-  baseURL = "http://localhost:8081";
+  baseURL = CONFIG.apiBaseUrl;
 
   constructor(token?: string) {
     this.client = axios.create({
@@ -31,7 +32,7 @@ export const ServiceProvider: React.FC<React.PropsWithChildren> = ({
   const user = useUser();
 
   const service = React.useMemo<Services>(() => {
-    return new Services(user?.token);
+    return new Services(user?.credential);
   }, [user]);
 
   return (
