@@ -31,7 +31,7 @@ jobs:
       - id: "auth"
         uses: "google-github-actions/auth@v1"
         with:
-          workload_identity_provider: "/projects/94669066373/locations/global/workloadIdentityPools/github/providers/github"
+          workload_identity_provider: "projects/94669066373/locations/global/workloadIdentityPools/github/providers/github"
           service_account: "app-engine-deployer@admin-338415.iam.gserviceaccount.com"
 
       # Build/Deploy
@@ -71,7 +71,7 @@ jobs:
       - id: "auth"
         uses: "google-github-actions/auth@v1"
         with:
-          workload_identity_provider: "/projects/94669066373/locations/global/workloadIdentityPools/github/providers/github"
+          workload_identity_provider: "projects/94669066373/locations/global/workloadIdentityPools/github/providers/github"
           service_account: "app-engine-deployer@admin-338415.iam.gserviceaccount.com"
 
       # Build/Deploy
