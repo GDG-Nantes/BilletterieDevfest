@@ -23,6 +23,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           cache: "npm"
+          cache-dependency-path: "ihm-admin/package-lock.json" # je peine à croire que j'ai besoin d'écrire ça en v3...
 
       - id: "auth"
         uses: "google-github-actions/auth@v1"
@@ -59,6 +60,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           cache: "npm"
+          cache-dependency-path: "web-server/package-lock.json" # je peine à croire que j'ai besoin d'écrire ça en v3...
 
       - id: "auth"
         uses: "google-github-actions/auth@v1"
