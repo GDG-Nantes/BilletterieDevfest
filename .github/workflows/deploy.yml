@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./ihm-admin
+        working-directory: ihm-admin
     steps:
       # Setup
 
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./web-server
+        working-directory: web-server
     steps:
       # Setup
 
