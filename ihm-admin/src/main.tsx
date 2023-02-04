@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Authenticated, AuthenticationProvider } from "./auth";
 import { CONFIG } from "./config";
 import "./index.css";
@@ -13,7 +13,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <ServiceProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="*" element={<Authenticated />}>
+            <Route path="/" element={<Navigate to="/admin" />} />
+            <Route path="/admin/*" element={<Authenticated />}>
               <Route index element={<Sponsors />} />
             </Route>
           </Routes>

@@ -37,9 +37,7 @@ jobs:
       # Build/Deploy
 
       - run: npm ci
-      - run: |
-          export API_BASE_URL=https://web-server-dot-admin-338415.ew.r.appspot.com
-          npm run build
+      - run: npm run build
 
       - id: "deploy"
         name: "Deploy to App Engine"
