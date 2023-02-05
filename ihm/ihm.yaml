@@ -1,5 +1,5 @@
 runtime: python27
-service: admin
+service: default
 threadsafe: true
 
 handlers:

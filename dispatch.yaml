@@ -1,8 +1,5 @@
 dispatch:
-  - url: "*/api"
+  - url: "*/api/*"
     service: web-server
-  - url: "*/admin-api"
+  - url: "*/admin-api/*"
     service: web-server
-
-  - url: "*/admin"
-    service: admin
