@@ -1,9 +1,4 @@
-import {
-  CredentialResponse,
-  GoogleLogin,
-  GoogleOAuthProvider,
-  useGoogleOneTapLogin,
-} from "@react-oauth/google";
+import { CredentialResponse, GoogleLogin, GoogleOAuthProvider, useGoogleOneTapLogin } from "@react-oauth/google";
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import React from "react";
 import { Outlet } from "react-router-dom";
@@ -27,9 +22,10 @@ type GoogleTokenData = JwtPayload & {
   email: string;
 };
 
-export const AuthenticationProvider: React.FC<
-  React.PropsWithChildren & { clientId: string }
-> = ({ children, clientId }) => {
+export const AuthenticationProvider: React.FC<React.PropsWithChildren & { clientId: string }> = ({
+  children,
+  clientId,
+}) => {
   const [user, _setUser] = React.useState<User | null>(() => {
     const storedCredential = sessionStorage.getItem(STORAGE_KEY_CREDENTIAL);
     if (storedCredential != null) {
@@ -61,9 +57,7 @@ export const AuthenticationProvider: React.FC<
 
   return (
     <GoogleOAuthProvider clientId={clientId}>
-      <userContext.Provider value={{ user, setCredential }}>
-        {children}
-      </userContext.Provider>
+      <userContext.Provider value={{ user, setCredential }}>{children}</userContext.Provider>
     </GoogleOAuthProvider>
   );
 };
@@ -73,9 +67,7 @@ export const useUser = (): User | null => {
   return user;
 };
 
-export const Authenticated: React.FC<{ optional?: boolean }> = ({
-  optional,
-}) => {
+export const Authenticated: React.FC<{ optional?: boolean }> = ({ optional }) => {
   const { setCredential, user } = React.useContext(userContext);
 
   const onSuccess = (credentialResponse: CredentialResponse) => {
@@ -94,9 +86,7 @@ export const Authenticated: React.FC<{ optional?: boolean }> = ({
         onError,
       });
     } else {
-      return (
-        <GoogleLogin onSuccess={onSuccess} onError={onError} auto_select />
-      );
+      return <GoogleLogin onSuccess={onSuccess} onError={onError} size="large" auto_select />;
     }
   }
 

@@ -1,6 +1,6 @@
 import axios from "axios";
+import { Commande, OptionsPack, TypePack } from "../../interfaces/types";
 import { CONFIG } from "../config";
-import { Commande, OptionsPack, TypePack } from "./types";
 import { Attendee } from "./types-billetweb";
 
 const axiosClientBilletWeb = axios.create({
@@ -25,7 +25,7 @@ axiosClientBilletWeb.interceptors.response.use(
 );
 
 export const BilletWebApi = {
-  getSponsors: async function (): Promise<Commande[]> {
+  listerCommandes: async function (): Promise<Commande[]> {
     const response = await axiosClientBilletWeb.get<Attendee[]>("attendees");
     const attendees: Attendee[] = response.data;
 
