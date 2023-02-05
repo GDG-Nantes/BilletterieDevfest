@@ -4,7 +4,7 @@ import { Stack } from "@mui/system";
 import { DataGrid } from "@mui/x-data-grid";
 import React from "react";
 import { useQuery } from "react-query";
-import { Commande } from "../../../../interfaces/types";
+import { Commande } from "../../../../web-server/interfaces/types";
 import { MyButton } from "../../components/links";
 import { normalize } from "../../helpers";
 import { useServices } from "../../services";

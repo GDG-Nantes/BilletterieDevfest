@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Commande, OptionsPack, TypePack } from "../../interfaces/types";
 import { CONFIG } from "../config";
+import { Commande, OptionsPack, TypePack } from "../interfaces/types";
 import { Attendee } from "./types-billetweb";
 
 const axiosClientBilletWeb = axios.create({

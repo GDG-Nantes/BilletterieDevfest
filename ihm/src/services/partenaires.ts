@@ -1,5 +1,5 @@
 import { AxiosInstance } from "axios";
-import { Commande } from "../../../interfaces/types";
+import { Commande } from "../../../web-server/interfaces/types";
 
 export class ServicesPartenaires {
   client: AxiosInstance;
