@@ -1,19 +1,22 @@
-import cors from 'cors'
-import express from 'express'
-import {CONFIG} from "./config";
-import {BilletWebApi} from "./billetweb/api";
+import cors from "cors";
+import express from "express";
+import { authMiddleware } from "./auth";
+import { BilletWebApi } from "./billetweb/api";
 
-const app = express()
-app.use(express.json())
-app.use(cors())
+const app = express();
+app.use(express.json());
+app.use(cors());
 
-app.get('/', (req, res) => res.send('🏠'))
+app.get("/health", (req, res) => res.send({ status: "UP" }));
 
-app.get('/sponsors', async (req, res) => {
-    let attendees = await BilletWebApi.getSponsors();
-    res.send(attendees)
-})
+const adminRouter = express.Router();
+app.use("/admin-api", adminRouter);
+adminRouter.use(authMiddleware);
 
+adminRouter.get("/sponsors", async (req, res) => {
+  const attendees = await BilletWebApi.getSponsors();
+  res.send(attendees);
+});
 
-const PORT = 8080
-app.listen(PORT, () => console.log(`Silence, ça tourne sur ${PORT}.`))
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Silence, ça tourne sur ${PORT}.`));

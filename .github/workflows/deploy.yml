@@ -1,0 +1,85 @@
+name: deploy
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  deploy-ihm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+    defaults:
+      run:
+        working-directory: ihm
+    steps:
+      # Setup
+
+      - uses: actions/checkout@v3
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: "npm"
+          cache-dependency-path: "ihm/package-lock.json" # je peine à croire que j'ai besoin d'écrire ça en v3...
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v1"
+        with:
+          workload_identity_provider: "projects/94669066373/locations/global/workloadIdentityPools/github/providers/github"
+          service_account: "app-engine-deployer@admin-338415.iam.gserviceaccount.com"
+
+      # Build/Deploy
+
+      - run: npm ci
+      - run: npm run build
+
+      - id: "deploy"
+        name: "Deploy to App Engine"
+        uses: "google-github-actions/deploy-appengine@v1"
+        with:
+          deliverables: "ihm/ihm.yaml"
+          version: ${{ steps.get_version.outputs.VERSION }}
+
+  deploy-web-server:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+    defaults:
+      run:
+        working-directory: web-server
+    steps:
+      # Setup
+
+      - uses: actions/checkout@v3
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+      - uses: actions/setup-node@v3
+        with:
+          cache: "npm"
+          cache-dependency-path: "web-server/package-lock.json" # je peine à croire que j'ai besoin d'écrire ça en v3...
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v1"
+        with:
+          workload_identity_provider: "projects/94669066373/locations/global/workloadIdentityPools/github/providers/github"
+          service_account: "app-engine-deployer@admin-338415.iam.gserviceaccount.com"
+
+      # Build/Deploy
+
+      - run: echo "BILLETWEB_API_KEY=${{ secrets.BILLETWEB_API_KEY }}" > .env
+
+      - id: "deploy"
+        name: "Deploy to App Engine"
+        uses: "google-github-actions/deploy-appengine@v1"
+        with:
+          deliverables: "web-server/web-server.yaml web-server/dispatch.yaml"
+          version: ${{ steps.get_version.outputs.VERSION }}
