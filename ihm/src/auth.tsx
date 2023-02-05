@@ -29,29 +29,37 @@ export const AuthenticationProvider: React.FC<React.PropsWithChildren & { client
   const [user, _setUser] = React.useState<User | null>(() => {
     const storedCredential = sessionStorage.getItem(STORAGE_KEY_CREDENTIAL);
     if (storedCredential != null) {
-      try {
-        const tokenData = jwtDecode(storedCredential) as GoogleTokenData;
-        if (tokenData.exp && tokenData.exp * 1000 > Date.now()) {
-          return {
-            credential: storedCredential,
-            firstName: tokenData.given_name,
-            lastName: tokenData.family_name,
-            email: tokenData.email,
-          };
-        }
-      } catch (error) {
-        console.error(error);
-        return null;
-      }
+      return parseCredential(storedCredential);
     }
     return null;
   });
 
+  function parseCredential(credential: string): User | null {
+    try {
+      const tokenData = jwtDecode(credential) as GoogleTokenData;
+      if (tokenData.exp && tokenData.exp * 1000 > Date.now()) {
+        return {
+          credential: credential,
+          firstName: tokenData.given_name,
+          lastName: tokenData.family_name,
+          email: tokenData.email,
+        };
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
   function setCredential(credential?: string | null) {
     if (credential == null) {
       sessionStorage.removeItem(STORAGE_KEY_CREDENTIAL);
+      _setUser(null);
     } else {
       sessionStorage.setItem(STORAGE_KEY_CREDENTIAL, credential);
+      _setUser(parseCredential(credential));
     }
   }
 
