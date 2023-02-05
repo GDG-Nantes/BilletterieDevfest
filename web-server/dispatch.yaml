@@ -3,3 +3,6 @@ dispatch:
     service: web-server
   - url: "*/admin-api/*"
     service: web-server
+
+  - url: "*/*"
+    service: default
