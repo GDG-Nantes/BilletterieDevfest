@@ -75,7 +75,7 @@ jobs:
 
       # Build/Deploy
 
-      - run: echo "BILLETWEB_API_KEY=$BILLETWEB_API_KEY" > .env
+      - run: echo "BILLETWEB_API_KEY=${{ secrets.BILLETWEB_API_KEY }}" > .env
 
       - id: "deploy"
         name: "Deploy to App Engine"

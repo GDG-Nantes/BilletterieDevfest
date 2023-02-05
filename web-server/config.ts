@@ -1,5 +1,8 @@
 require("dotenv").config();
 
+if (process.env.BILLETWEB_API_KEY == null) {
+  throw new Error("BILLETWEB_API_KEY has no value");
+}
 export const CONFIG = {
   billetweb: {
     apiKey: process.env.BILLETWEB_API_KEY,
