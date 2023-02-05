@@ -25,10 +25,13 @@ export async function authMiddleware(
     try {
       const loginTicket = await oAuth2Client.verifyIdToken({ idToken });
       let payload = loginTicket.getPayload() as Required<TokenPayload>;
-      if (payload?.hd === "gdgnantes.com") {
+      if (
+        payload?.hd === "gdgnantes.com" ||
+        payload.email === "pena.anthony49@gmail.com"
+      ) {
         req.auth = payload;
+        next();
       }
-      next();
     } catch (error) {
       console.error(error);
       throwAuthError(res, "Error validating token");
