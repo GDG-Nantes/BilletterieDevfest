@@ -1,7 +1,7 @@
 import express from "express";
 import { BilletWebApi } from "../billetweb/api";
 
-export const routerPartenaires = express.Router();
+const routerPartenaires = express.Router();
 routerPartenaires.get("/commandes/:idCommande", async (req, res) => {
   const { idCommande } = req.params;
   const commandes = await BilletWebApi.listerCommandes();
@@ -14,3 +14,5 @@ routerPartenaires.get("/commandes/:idCommande", async (req, res) => {
     res.send(commandeConsultee);
   }
 });
+
+export default routerPartenaires;
