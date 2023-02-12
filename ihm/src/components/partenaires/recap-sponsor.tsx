@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Grid } from "@mui/material";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import { useServices } from "../../services";
@@ -27,12 +27,16 @@ export const RecapSponsor = () => {
   }
 
   return (
-    <>
-      <Typography variant="h1">{commande.acheteur.entreprise}</Typography>
-      <MyButton href={commande.lienGestionCommande}>Gérer la commande Billetweb</MyButton>
-      <Box>
-        <pre>{JSON.stringify(commande, null, 2)}</pre>
-      </Box>
-    </>
+    <Grid container>
+      <Grid item xs={4}>
+        <Typography variant="h1">{commande.acheteur.entreprise}</Typography>
+        <MyButton href={commande.lienGestionCommande}>Gérer la commande Billetweb</MyButton>
+      </Grid>
+      <Grid item xs={8}>
+        <Box>
+          <pre>{JSON.stringify(commande, null, 2)}</pre>
+        </Box>
+      </Grid>
+    </Grid>
   );
 };
