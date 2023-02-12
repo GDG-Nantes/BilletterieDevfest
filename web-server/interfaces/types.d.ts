@@ -1,11 +1,10 @@
 export type TypePack =
-  | "PLATINIUM_XL"
   | "PLATINIUM"
   | "GOLD"
   | "SILVER"
   | "VIRTUEL"
-  | "AFTER"
-  | "SPECIAL"
+  | "JOBBOARD"
+  | "VELOTYPIE"
   | "UNKNOWN";
 
 export interface Commande {
@@ -23,6 +22,7 @@ export interface Commande {
     montantTotalTTC: number;
   };
   acheteur: Acheteur;
+  commandesLiees: Array<Commande>;
   notes: string;
 }
 
@@ -45,9 +45,14 @@ export interface Acheteur {
   mailCompta: string;
 }
 
-export type OptionsPack = "ANNUEL" | "ELECTRICITE_6kW" | "INTERNET_16Mbps";
+export type OptionsPack =
+  | "PLATINIUM_XL"
+  | "AFTER"
+  | "ANNUEL"
+  | "ELECTRICITE_6kW"
+  | "ELECTRICITE_21kW"
+  | "INTERNET_16Mbps";
 
-export interface PayerCommande {
+export interface MarquerCommandePayee {
   idCommande: string;
-  estPaye: boolean;
 }

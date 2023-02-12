@@ -4,10 +4,7 @@ import { BilletWebApi } from "../billetweb/api";
 const routerPartenaires = express.Router();
 routerPartenaires.get("/commandes/:idCommande", async (req, res) => {
   const { idCommande } = req.params;
-  const commandes = await BilletWebApi.listerCommandes();
-  const commandeConsultee = commandes.find(
-    (commande) => commande.extId === idCommande
-  );
+  const commandeConsultee = await BilletWebApi.consulterCommande(idCommande);
   if (commandeConsultee == null) {
     res.status(404).send("Commande introuvable");
   } else {
