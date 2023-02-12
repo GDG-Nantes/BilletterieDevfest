@@ -4,7 +4,7 @@ import { Commande, OptionsPack, TypePack } from "../interfaces/types";
 import { Attendee } from "./types-billetweb";
 
 const axiosClientBilletWeb = axios.create({
-  baseURL: `https://billetweb.fr/api/event/${CONFIG.billetweb.event}/`,
+  baseURL: `https://www.billetweb.fr/api/event/${CONFIG.billetweb.event}/`,
   params: {
     user: CONFIG.billetweb.user,
     key: CONFIG.billetweb.apiKey,
@@ -29,91 +29,159 @@ export const BilletWebApi = {
     const response = await axiosClientBilletWeb.get<Attendee[]>("attendees");
     const attendees: Attendee[] = response.data;
 
-    const commandes: { [id: string]: Commande } = {};
-    // On récupère d'abord toutes les demandes de partenariats
-    attendees
-      .filter(
-        (attendee) => calculerTypeTicket(attendee.ticket) === "PARTENAIRE"
-      )
-      .forEach((attendee) => {
-        if (commandes[attendee.order_id] == null) {
-          commandes[attendee.order_id] = initialiserCommande(attendee);
-        }
-      });
+    return convertirAttendeesEnCommandes(attendees);
+  },
 
-    // On enrichi ensuite avec toutes les options qu'on trouve
-    attendees.forEach((attendee) => {
-      const typeTicket = calculerTypeTicket(attendee.ticket);
-      let commande: Commande | null = commandes[attendee.order_id];
+  consulterCommande: async function (idCommande: string): Promise<Commande> {
+    const response = await axiosClientBilletWeb.get<Attendee[]>("attendees");
+    const attendees: Attendee[] = response.data.filter(
+      (attendee) => attendee.order_ext_id === idCommande
+    );
 
-      // Les sponsors peuvent avoir acheté une option après le premier achat qui contenait le partenariat
-      // dans ce cas là, le lien est fait par le champ entreprise
-      if (commande == null && attendee.category !== "Choix du stand") {
-        commande = Object.values(commandes).find(
-          (commande) =>
-            commande.acheteur.entreprise === attendee.custom_order.Entreprise
-        ) as Commande | null;
+    return convertirAttendeesEnCommandes(attendees)[0];
+  },
 
-        // Si on trouve une commande fait par la même entreprise, on ajoute au montant et une note pour s'y retrouver
-        if (commande != null) {
-          commande.paiement.montantTotalTTC += parseInt(attendee.price);
-          commande.notes += `Liée à la commande ${attendee.order_ext_id}
-                    `;
-        }
+  // WIP, impossible de le faire marcher pour le moment
+  // peut être lié au fait de faire passer l'authent par queryParams
+  // en debug, l'objet request qui revient de billetweb est un GET et pas un POST
+  marquerCommePaye: async (idCommande: string) => {
+    const res = await axiosClientBilletWeb.post(
+      `pay_order`,
+      {
+        data: [
+          {
+            id: parseInt(idCommande),
+            payment_type: "other",
+            notification: 1,
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-type": "application/json",
+        },
       }
-
-      // Dans la plupart des cas, les options auront été prises avec le partenariat
-      // il suffit alors d'enrichir la commande existante
-      if (commande != null) {
-        switch (typeTicket) {
-          case "PLATINIUM":
-          case "VIRTUEL":
-          case "GOLD":
-          case "SILVER":
-          case "SPECIAL":
-            // la condition permet de s'assurer qu'un sponsor déjà flagué PXL ne sera pas reflagué Platinium par exemple
-            if (commande.typePack === "UNKNOWN") {
-              commande.typePack = typeTicket;
-            }
-            break;
-          case "ANNUEL":
-          case "INTERNET_16Mbps":
-          case "ELECTRICITE_6kW":
-            commande.options.push(typeTicket);
-            break;
-          case "PLATINIUM_XL":
-          case "AFTER":
-            commande.typePack = typeTicket;
-            break;
-        }
-      } else if (attendee.category !== "Choix du stand") {
-        console.error("Erreur de l'analyse de la commande", attendee);
-      }
-    });
-
-    return Object.values(commandes);
+    );
+    if (res.data.length === 0) {
+      throw new Error(
+        `Erreur lors de l'appel à Billetweb pour la commande ${idCommande}`
+      );
+    }
   },
 };
 
-function calculerTypeTicket(
-  ticket: string
-): OptionsPack | TypePack | "PARTENAIRE" {
-  const regexpTypeTicket: {
-    [r: string]: OptionsPack | TypePack | "PARTENAIRE";
-  } = {
-    "Pack Platinium - 18m2": "PLATINIUM",
-    "Pack Gold - 12m2": "GOLD",
-    "Pack Silver - 9m2": "SILVER",
-    "Pack Virtuel - Pas de stand": "VIRTUEL",
-    "Pack Special - 12m2": "SPECIAL",
+function convertirAttendeesEnCommandes(attendees: Attendee[]) {
+  const commandes: { [id: string]: Commande } = {};
+  // On récupère d'abord toutes les demandes de partenariats
+  attendees
+    .filter((attendee) =>
+      LISTE_TYPES_PACK.includes(calculerTypeTicket(attendee.ticket) as TypePack)
+    )
+    .forEach((attendee) => {
+      if (commandes[attendee.order_id] == null) {
+        commandes[attendee.order_id] = initialiserCommande(attendee);
+      }
+    });
 
-    AfterParty: "AFTER",
+  // On enrichi ensuite avec toutes les options qu'on trouve
+  attendees.forEach((attendee) => {
+    const typeTicket = calculerTypeTicket(attendee.ticket);
+    let commande: Commande | null = commandes[attendee.order_id];
+
+    // Les sponsors peuvent avoir acheté une option après le premier achat qui contenait le partenariat
+    // dans ce cas là, le lien est fait par le champ entreprise
+    if (commande == null) {
+      commande = Object.values(commandes).find(
+        (commande) =>
+          commande.acheteur.entreprise === attendee.custom_order.Entreprise
+      ) as Commande | null;
+
+      // Si on trouve une commande fait par la même entreprise, on ajoute au montant et une note pour s'y retrouver
+      // Sinon c'est le cas d'un sponsor After qui n'est pas platinium par exemple
+      commandes[attendee.order_id] = initialiserCommande(attendee);
+
+      if (commande != null) {
+        commandes[attendee.order_id].commandesLiees.push({
+          ...commande,
+          commandesLiees: [],
+        });
+        commande.commandesLiees.push({
+          ...commandes[attendee.order_id],
+          commandesLiees: [],
+        });
+      } else {
+        commande = commandes[attendee.order_id];
+      }
+    }
+
+    // Dans la plupart des cas, les options auront été prises avec le partenariat
+    // il suffit alors d'enrichir la commande existante
+    if (commande != null) {
+      if (LISTE_TYPES_PACK.includes(typeTicket as TypePack)) {
+        commande.typePack = typeTicket as TypePack;
+      } else if (LISTE_OPTIONS.includes(typeTicket as OptionsPack)) {
+        commande.options.push(typeTicket as OptionsPack);
+      }
+    } else if (attendee.category !== "Choix du stand") {
+      console.error("Erreur de l'analyse de la commande", attendee);
+    }
+  });
+
+  return Object.values(commandes);
+}
+
+export const LISTE_TYPES_PACK: TypePack[] = [
+  "PLATINIUM",
+  "GOLD",
+  "SILVER",
+  "VIRTUEL",
+  "JOBBOARD",
+  "VELOTYPIE",
+];
+
+export const LISTE_OPTIONS: OptionsPack[] = [
+  "PLATINIUM_XL",
+  "AFTER",
+  "ANNUEL",
+  "ELECTRICITE_21kW",
+  "ELECTRICITE_6kW",
+  "INTERNET_16Mbps",
+];
+
+function calculerTypeTicket(ticket: string): OptionsPack | TypePack | "IGNORE" {
+  const regexpTypeTicket: {
+    [r: string]: OptionsPack | TypePack | "IGNORE";
+  } = {
+    "Partenaire Jobboard": "JOBBOARD",
+    "Pack Partenaire Vélotypie": "VELOTYPIE",
+    "Pack Partenaire Devfest - Virtuel": "VIRTUEL",
+    "Pack Partenaire Devfest - Silver": "SILVER",
+    "Pack Partenaire Devfest - Gold": "GOLD",
+    "Pack Partenaire Devfest - Platinium": "PLATINIUM",
+
+    "Pack Partenaire AfterParty": "AFTER",
     "Option PXL": "PLATINIUM_XL",
-    "Electricité : 6KW à la place de 3KW": "ELECTRICITE_6kW",
     "Partenaire annuel GDG Nantes": "ANNUEL",
     "Internet : Connexion filaire 16Mbps": "INTERNET_16Mbps",
+    "Electricité : second bloc électrique de 3KW": "ELECTRICITE_6kW",
+    "Electricité : Bloc de 21 KW à la place de 3 KW": "ELECTRICITE_21kW",
 
-    "Partenaire Devfest": "PARTENAIRE",
+    // Pour information, les autres éléments de billetweb
+    "AfterParty 1/2": "IGNORE",
+    "AfterParty 2/2": "IGNORE",
+    "Pas de stand": "IGNORE",
+    "Stand 9m2": "IGNORE",
+    "Stand 12m2": "IGNORE",
+    "Stand 18m2": "IGNORE",
+    "Electricité : 3KW": "IGNORE",
+    "Afterparty - Logistique": "IGNORE",
+    "Pass 2 jours Devfest Nantes": "IGNORE",
+    "Diffusion d'offre d'emploi": "IGNORE",
+    "Votre logo sur la page partenaire du Devfest": "IGNORE",
+    "Votre logo sur le site du Devfest": "IGNORE",
+    "Communication sur nos réseaux sociaux": "IGNORE",
+    "Article de votre choix dans notre newsletter et le blog du site web du Devfest":
+      "IGNORE",
   };
   return selectValueByRegexp(ticket, regexpTypeTicket) || "UNKNOWN";
 }
@@ -163,6 +231,7 @@ function initialiserCommande(commandeSponsor: Attendee): Commande {
       montantTotalTTC: parseInt(commandeSponsor.order_price),
     },
     options: [],
+    commandesLiees: [],
     notes: "",
   };
 }

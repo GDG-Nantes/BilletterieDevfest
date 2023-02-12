@@ -1,4 +1,3 @@
-import { Info, Notes } from "@mui/icons-material";
 import { Box, Input } from "@mui/material";
 import { Stack } from "@mui/system";
 import { DataGrid } from "@mui/x-data-grid";
@@ -12,7 +11,7 @@ import { useServices } from "../../services";
 export const Sponsors = () => {
   const services = useServices();
   const [filtre, setFiltre] = React.useState<string>("");
-  const { data: commandes, isLoading, error } = useQuery("sponsors", () => services.admin.getSponsors());
+  const { data: commandes, isLoading, error, refetch } = useQuery("sponsors", () => services.admin.getSponsors());
 
   const commandesFiltrees = React.useMemo<Commande[]>(() => {
     if (commandes == null) {
@@ -58,7 +57,11 @@ export const Sponsors = () => {
             type: "boolean",
             editable: true,
             valueSetter: (params) => {
-              window.alert("J'ai pas encore implémenté ça");
+              if (params.value) {
+                services.admin.marquerCommandePayee(params.row.id).then(() => refetch());
+              } else {
+                window.alert("Impossible de revenir en arrière sur le paiement");
+              }
               return params.row;
             },
           },
@@ -71,31 +74,37 @@ export const Sponsors = () => {
             width: 150,
           },
           {
-            field: "actions",
-            headerName: "Actions",
-            type: "actions",
-            getActions: (params) => [
-              <MyButton href={params.row.lienGestionCommande}>
-                <Info />
-              </MyButton>,
-              <MyButton href={`/admin/sponsors/${params.row.extId}`}>
-                <Notes />
-              </MyButton>,
-            ],
-            align: "right",
-            width: 200,
-          },
-          {
             field: "options",
             headerName: "Options",
             valueGetter: ({ row }) => row.options.join(", "),
             width: 300,
           },
           {
-            field: "notes",
-            headerName: "Notes",
-            width: 300,
+            field: "actions",
+            headerName: "Actions",
+            type: "actions",
+            getActions: (params) => [
+              <MyButton href={params.row.lienGestionCommande}>Billetweb</MyButton>,
+              <MyButton href={`/admin/sponsors/${params.row.extId}`}>Recap Partenaire</MyButton>,
+            ],
+            align: "right",
+            width: 400,
           },
+          // {
+          //   field: "commandesLiees",
+          //   headerName: "Commandes liées",
+          //   renderCell: (params: GridRenderCellParams<Commande[]>) => (
+          //     <>
+          //       {params.value?.map((c) => (
+          //         <div>
+          //           <MyButton href={c.lienGestionCommande}>Commande liée</MyButton>
+          //           <MyButton href={`/admin/sponsors/${c.extId}`}>{c.extId}</MyButton>
+          //         </div>
+          //       ))}
+          //     </>
+          //   ),
+          //   width: 300,
+          // },
         ]}
         hideFooterPagination
       />

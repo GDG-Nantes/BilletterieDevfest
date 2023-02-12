@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
+import { CONFIG } from "./config";
 
 const oAuth2Client = new OAuth2Client();
 function throwAuthError(res: Response, error?: unknown) {
@@ -18,23 +19,27 @@ export async function authMiddleware(
   res: Response,
   next: NextFunction
 ) {
-  const idToken = req.headers.authorization?.replace("Bearer ", "");
-  if (idToken == null) {
-    throwAuthError(res);
+  if (CONFIG.isAuthDisabled) {
+    next();
   } else {
-    try {
-      const loginTicket = await oAuth2Client.verifyIdToken({ idToken });
-      let payload = loginTicket.getPayload() as Required<TokenPayload>;
-      if (
-        payload?.hd === "gdgnantes.com" ||
-        payload.email === "pena.anthony49@gmail.com"
-      ) {
-        req.auth = payload;
-        next();
+    const idToken = req.headers.authorization?.replace("Bearer ", "");
+    if (idToken == null) {
+      throwAuthError(res);
+    } else {
+      try {
+        const loginTicket = await oAuth2Client.verifyIdToken({ idToken });
+        let payload = loginTicket.getPayload() as Required<TokenPayload>;
+        if (
+          payload?.hd === "gdgnantes.com" ||
+          payload.email === "pena.anthony49@gmail.com"
+        ) {
+          req.auth = payload;
+          next();
+        }
+      } catch (error) {
+        console.error(error);
+        throwAuthError(res, "Error validating token");
       }
-    } catch (error) {
-      console.error(error);
-      throwAuthError(res, "Error validating token");
     }
   }
 }
