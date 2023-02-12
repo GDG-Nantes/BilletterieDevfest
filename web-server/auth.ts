@@ -35,6 +35,8 @@ export async function authMiddleware(
         ) {
           req.auth = payload;
           next();
+        } else {
+          throwAuthError(res, "UNAUTHORIZED");
         }
       } catch (error) {
         console.error(error);
