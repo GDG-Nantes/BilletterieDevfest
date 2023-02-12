@@ -56,3 +56,8 @@ export type OptionsPack =
 export interface MarquerCommandePayee {
   idCommande: string;
 }
+
+export interface Stand {
+  id: string;
+  reserved: boolean;
+}
