@@ -1,7 +1,19 @@
 body,
 #root {
   margin: 0;
-  display: flex;
   width: 100vw;
   height: 100vh;
+}
+
+body {
+  --primary: #1a213d;
+  --primary-dark: #1a213d;
+  --primary-light: #3577bc;
+  --secondary-light: #e9764f;
+  --secondary: #d14f34;
+  --tertiary: #fcefb2;
+  --tertiary-dark: #f9e075;
+
+  background-color: var(--primary);
+  color: var(--tertiary)
 }

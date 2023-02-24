@@ -84,8 +84,8 @@ export const Sponsors = () => {
             headerName: "Actions",
             type: "actions",
             getActions: (params) => [
-              <MyButton href={params.row.lienGestionCommande}>Billetweb</MyButton>,
-              <MyButton href={`/admin/sponsors/${params.row.extId}`}>Recap Partenaire</MyButton>,
+              <MyButton href={params.row.lienGestionCommande} color="secondary">Billetweb</MyButton>,
+              <MyButton href={`/admin/sponsors/${params.row.extId}`} color="secondary">Recap Partenaire</MyButton>,
             ],
             align: "right",
             width: 400,

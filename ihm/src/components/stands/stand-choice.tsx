@@ -1,29 +1,42 @@
-import { Button, Grid } from "@mui/material";
+import { Button, Grid, Toolbar } from "@mui/material";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { Stand } from "../../../../web-server/interfaces/types";
+import { Stand, TypePack } from "../../../../web-server/interfaces/types";
 import { useServices } from "../../services";
 
-import "./stand-choice.css";
+import "./stand-choice.scss";
 
 export function StandChoice() {
   const { stands } = useStandList();
   const { standChoice, setStandChoice, saveChoice } = useStandChoice();
+  const { commande, isLoading, error } = useCommande();
+  if (isLoading) {
+    return;
+  }
+  if (error || !commande) {
+    return <div>La commande n'existe pas</div>;
+  }
   return (
-    <Grid container className="stand-choice">
-      <Grid item xs={3}>
-        <h1>Choix du stand</h1>
-        <p>Stand choisi: {standChoice}</p>
-        <Button disabled={!standChoice} onClick={saveChoice}>
-          Enregistrer mon choix
-        </Button>
+    <>
+      <Toolbar>
+        <h1>
+          Choix du stand {commande.typePack} pour {commande.acheteur.entreprise}
+        </h1>
+      </Toolbar>
+      <Grid container className="stand-choice">
+        <Grid item xs={3}>
+          <h2>Stand choisi: {standChoice}</h2>
+          <Button disabled={!standChoice} onClick={saveChoice} variant="contained" color="secondary">
+            Enregistrer mon choix
+          </Button>
+        </Grid>
+        <Grid item xs={9}>
+          <SvgMap url="/map1.svg" stands={stands} onClick={setStandChoice} authorizedTypes={[commande.typePack]} />
+          <SvgMap url="/map2.svg" stands={stands} onClick={setStandChoice} authorizedTypes={[commande.typePack]} />
+        </Grid>
       </Grid>
-      <Grid item xs={9}>
-        <SvgMap url="/map1.svg" stands={stands} onClick={setStandChoice} />
-        <SvgMap url="/map2.svg" stands={stands} onClick={setStandChoice} />
-      </Grid>
-    </Grid>
+    </>
   );
 }
 
@@ -31,6 +44,16 @@ function useStandList() {
   const { stands: serviceStands } = useServices();
   const { data: stands, isLoading, error } = useQuery(`stands-list`, () => serviceStands.standList());
   return { stands, isLoading, error };
+}
+
+function useCommande() {
+  const { partenaires } = useServices();
+  const { idCommande } = useParams();
+  if (!idCommande) {
+    return { error: new Error("Id de commande invalide"), isLoading: false };
+  }
+  const { data: commande, isLoading, error } = useQuery(`commande`, () => partenaires.consulterCommande(idCommande));
+  return { commande, isLoading, error };
 }
 
 function useStandChoice() {
@@ -56,13 +79,16 @@ function useStandChoice() {
 interface MapProps {
   url: string;
   stands: Stand[] | undefined;
+
   onClick(stand: string): void;
+
+  authorizedTypes: TypePack[];
 }
 
-const SvgMap = React.memo(function SvgMapRaw({ url, stands, onClick }: MapProps) {
+const SvgMap = React.memo(function SvgMapRaw({ url, stands, onClick, authorizedTypes }: MapProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<string | null>(null);
-  const { selectStandNode } = useStandNode({ map, ref, stands });
+  const { selectStandNode } = useStandNode({ map, ref, stands, authorizedTypes });
 
   useEffect(() => {
     fetch(url)
@@ -92,12 +118,23 @@ interface UseStandNodeMapProps {
   map: string | null;
   stands: Stand[] | undefined;
   ref: React.RefObject<HTMLDivElement>;
+  authorizedTypes: TypePack[];
 }
 
-function useStandNode({ map, stands, ref }: UseStandNodeMapProps) {
+function matchesAnyPackTypes(currentPotentialStandId: string, authorizedTypes: TypePack[]) {
+  const prefixByTypes: { [k in TypePack]?: string } = {
+    PLATINIUM: "P",
+    SILVER: "S",
+    GOLD: "G",
+  };
+  return authorizedTypes.some((type) => currentPotentialStandId.startsWith(prefixByTypes[type] || ""));
+}
+
+function useStandNode({ map, stands, ref, authorizedTypes }: UseStandNodeMapProps) {
   const availableStandIds: string[] = useMemo(() => stands?.map((s) => s.id) ?? [], [stands]);
   const [nodeMap, setNodeMap] = useState<Map<Element, string>>(new Map());
   const [standGroups, setStandGroups] = useState<Record<string, Element[]>>({});
+
   useEffect(() => {
     // skip if map of stands not loaded
     if (!map || availableStandIds.length === 0) {
@@ -110,7 +147,11 @@ function useStandNode({ map, stands, ref }: UseStandNodeMapProps) {
     // for every g node, we check if we can directly determine the stand from text content
     ref.current?.querySelectorAll("svg > g > g").forEach((group) => {
       const currentPotentialStandId = (group.textContent ?? "").trim().replaceAll("\n", "");
-      if (availableStandIds.includes(currentPotentialStandId)) {
+
+      if (
+        availableStandIds.includes(currentPotentialStandId) &&
+        matchesAnyPackTypes(currentPotentialStandId, authorizedTypes)
+      ) {
         if (!standGroups[currentPotentialStandId]) {
           standGroups[currentPotentialStandId] = [];
         }
@@ -145,6 +186,8 @@ function useStandNode({ map, stands, ref }: UseStandNodeMapProps) {
       });
       if (forStand) {
         standGroups[forStand].push(elt);
+      } else {
+        elt.classList.add("disabled-element");
       }
     });
     setStandGroups(standGroups);
@@ -195,15 +238,17 @@ function useStandNode({ map, stands, ref }: UseStandNodeMapProps) {
     let found: string | null = null;
     // we try from text content (faster)
     const textContent = event.target.textContent;
-    if (availableStandIds.includes(textContent)) {
+    if (availableStandIds.includes(textContent) && matchesAnyPackTypes(textContent, authorizedTypes)) {
       console.log("CLICK", event.target, textContent, "(with textContent)");
       found = textContent;
     }
     // then we try node map (slower)
-    const stand = [...nodeMap.entries()].find(([elt]) => elt === event.target || elt.contains(event.target));
-    if (stand) {
-      console.log("CLICK", event.target, stand[1], "(with node map)");
-      found = stand[1];
+    if (!found) {
+      const stand = [...nodeMap.entries()].find(([elt]) => elt === event.target || elt.contains(event.target));
+      if (stand) {
+        console.log("CLICK", event.target, stand[1], "(with node map)");
+        found = stand[1];
+      }
     }
 
     const standInfos = stands?.find((s) => s.id === found);
