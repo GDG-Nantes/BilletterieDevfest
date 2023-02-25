@@ -15,5 +15,8 @@ export const CONFIG = {
     event: "798592", // 2023-test-new
     // event: "790192", // 2023
   },
+  google: {
+    projectId: process.env["GOOGLE_PROJECT_ID"],
+  },
   isAuthDisabled: process.env["AUTH_DISABLED"] == "true",
 };
