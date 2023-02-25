@@ -1,2 +1,4 @@
 runtime: nodejs18
 service: web-server
+
+instance_class: F4
