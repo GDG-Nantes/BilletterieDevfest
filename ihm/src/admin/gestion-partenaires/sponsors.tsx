@@ -74,6 +74,12 @@ export const Sponsors = () => {
             width: 150,
           },
           {
+            field: "stand",
+            headerName: "Stand",
+            align: "center",
+            headerAlign: "center",
+          },
+          {
             field: "options",
             headerName: "Options",
             valueGetter: ({ row }) => row.options.join(", "),
@@ -84,8 +90,12 @@ export const Sponsors = () => {
             headerName: "Actions",
             type: "actions",
             getActions: (params) => [
-              <MyButton href={params.row.lienGestionCommande} color="secondary">Billetweb</MyButton>,
-              <MyButton href={`/admin/sponsors/${params.row.extId}`} color="secondary">Recap Partenaire</MyButton>,
+              <MyButton href={params.row.lienGestionCommande} color="secondary">
+                Billetweb
+              </MyButton>,
+              <MyButton href={`/admin/sponsors/${params.row.extId}`} color="secondary">
+                Recap Partenaire
+              </MyButton>,
             ],
             align: "right",
             width: 400,

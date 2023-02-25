@@ -12,16 +12,26 @@ export function StandChoice() {
   const { standChoice, setStandChoice, saveChoice } = useStandChoice();
   const { commande, isLoading, error } = useCommande();
   if (isLoading) {
-    return;
+    return <></>;
   }
   if (error || !commande) {
     return <div>La commande n'existe pas</div>;
+  }
+  if (commande.stand != null) {
   }
   return (
     <>
       <Toolbar>
         <h1>
-          Choix du stand {commande.typePack} pour {commande.acheteur.entreprise}
+          {commande.stand == null ? (
+            <>
+              Choix du stand {commande.typePack} pour {commande.acheteur.entreprise}
+            </>
+          ) : (
+            <>
+              {commande.acheteur.entreprise} a déjà choisi le stand {commande.stand}
+            </>
+          )}
         </h1>
       </Toolbar>
       <Grid container className="stand-choice">

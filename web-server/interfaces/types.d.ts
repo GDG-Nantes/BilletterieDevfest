@@ -1,11 +1,4 @@
-export type TypePack =
-  | "PLATINIUM"
-  | "GOLD"
-  | "SILVER"
-  | "VIRTUEL"
-  | "JOBBOARD"
-  | "VELOTYPIE"
-  | "UNKNOWN";
+export type TypePack = "PLATINIUM" | "GOLD" | "SILVER" | "VIRTUEL" | "JOBBOARD" | "VELOTYPIE" | "UNKNOWN";
 
 export interface Commande {
   id: string;
@@ -24,6 +17,7 @@ export interface Commande {
   acheteur: Acheteur;
   commandesLiees: Array<Commande>;
   notes: string;
+  stand?: string;
 }
 
 export interface Acheteur {
