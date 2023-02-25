@@ -1,4 +1,4 @@
-import { Button, Grid, Toolbar } from "@mui/material";
+import { AppBar, Button, Grid, Toolbar } from "@mui/material";
 import React, { MouseEventHandler, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
@@ -17,23 +17,23 @@ export function StandChoice() {
   if (error || !commande) {
     return <div>La commande n'existe pas</div>;
   }
-  if (commande.stand != null) {
-  }
   return (
     <>
-      <Toolbar>
-        <h1>
-          {commande.stand == null ? (
-            <>
-              Choix du stand {commande.typePack} pour {commande.acheteur.entreprise}
-            </>
-          ) : (
-            <>
-              {commande.acheteur.entreprise} a déjà choisi le stand {commande.stand}
-            </>
-          )}
-        </h1>
-      </Toolbar>
+      <AppBar position="static">
+        <Toolbar>
+          <h1>
+            {commande.stand == null ? (
+              <>
+                Choix du stand {commande.typePack} pour {commande.acheteur.entreprise}
+              </>
+            ) : (
+              <>
+                {commande.acheteur.entreprise} a déjà choisi le stand {commande.stand}
+              </>
+            )}
+          </h1>
+        </Toolbar>
+      </AppBar>
       <Grid container className="stand-choice">
         <Grid item xs={3}>
           <h2>Stand choisi: {standChoice}</h2>
@@ -101,7 +101,9 @@ function useStandChoice() {
 interface MapProps {
   url: string;
   stands: Stand[] | undefined;
+
   onClick(stand: string): void;
+
   selectedStand?: string;
   authorizedTypes: TypePack[];
 }
@@ -121,7 +123,7 @@ const SvgMap = React.memo(function SvgMapRaw({ url, stands, onClick, authorizedT
     if (selectedStand) {
       markStandNode(selectedStand);
     }
-  }, [selectedStand]);
+  }, [selectedStand, markStandNode]);
 
   const onMapClick: MouseEventHandler<HTMLDivElement> = (event) => {
     const foundStand = selectStandNode(event);
@@ -248,11 +250,13 @@ function useStandNode({ map, stands, ref, authorizedTypes }: UseStandNodeMapProp
 
   const markStandNode = React.useCallback(
     (standId: string) => {
+      console.log(ref.current);
       ref.current?.querySelectorAll("svg > g > g[data-selected]").forEach((elt) => {
         elt.removeAttribute("data-selected");
         elt.removeAttribute("data-container");
       });
       const elements = standGroups[standId];
+      console.log(elements);
       elements?.forEach((elt) => elt.setAttribute("data-selected", ""));
       elements?.sort((a, b) => {
         const aRect = a.getBoundingClientRect();
