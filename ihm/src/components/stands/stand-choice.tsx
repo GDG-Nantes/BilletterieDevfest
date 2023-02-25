@@ -1,5 +1,5 @@
 import { Button, Grid, Toolbar } from "@mui/material";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { MouseEventHandler, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { Stand, TypePack } from "../../../../web-server/interfaces/types";
@@ -42,8 +42,20 @@ export function StandChoice() {
           </Button>
         </Grid>
         <Grid item xs={9}>
-          <SvgMap url="/map1.svg" stands={stands} onClick={setStandChoice} authorizedTypes={[commande.typePack]} />
-          <SvgMap url="/map2.svg" stands={stands} onClick={setStandChoice} authorizedTypes={[commande.typePack]} />
+          <SvgMap
+            url="/map1.svg"
+            stands={stands}
+            onClick={setStandChoice}
+            selectedStand={commande.stand}
+            authorizedTypes={[commande.typePack]}
+          />
+          <SvgMap
+            url="/map2.svg"
+            stands={stands}
+            onClick={setStandChoice}
+            selectedStand={commande.stand}
+            authorizedTypes={[commande.typePack]}
+          />
         </Grid>
       </Grid>
     </>
@@ -89,16 +101,15 @@ function useStandChoice() {
 interface MapProps {
   url: string;
   stands: Stand[] | undefined;
-
   onClick(stand: string): void;
-
+  selectedStand?: string;
   authorizedTypes: TypePack[];
 }
 
-const SvgMap = React.memo(function SvgMapRaw({ url, stands, onClick, authorizedTypes }: MapProps) {
+const SvgMap = React.memo(function SvgMapRaw({ url, stands, onClick, authorizedTypes, selectedStand }: MapProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<string | null>(null);
-  const { selectStandNode } = useStandNode({ map, ref, stands, authorizedTypes });
+  const { selectStandNode, markStandNode } = useStandNode({ map, ref, stands, authorizedTypes });
 
   useEffect(() => {
     fetch(url)
@@ -106,7 +117,13 @@ const SvgMap = React.memo(function SvgMapRaw({ url, stands, onClick, authorizedT
       .then(setMap);
   }, [url]);
 
-  const onMapClick = (event: any) => {
+  useEffect(() => {
+    if (selectedStand) {
+      markStandNode(selectedStand);
+    }
+  }, [selectedStand]);
+
+  const onMapClick: MouseEventHandler<HTMLDivElement> = (event) => {
     const foundStand = selectStandNode(event);
     if (foundStand) {
       onClick(foundStand);
@@ -229,20 +246,23 @@ function useStandNode({ map, stands, ref, authorizedTypes }: UseStandNodeMapProp
     });
   }, [standGroups, stands]);
 
-  const markStandNode = (standId: string) => {
-    document.querySelectorAll("svg > g > g[data-selected]").forEach((elt) => {
-      elt.removeAttribute("data-selected");
-      elt.removeAttribute("data-container");
-    });
-    const elements = standGroups[standId];
-    elements.forEach((elt) => elt.setAttribute("data-selected", ""));
-    elements.sort((a, b) => {
-      const aRect = a.getBoundingClientRect();
-      const bRect = b.getBoundingClientRect();
-      return bRect.width * bRect.height - aRect.width * aRect.height;
-    });
-    elements[0].setAttribute("data-container", "");
-  };
+  const markStandNode = React.useCallback(
+    (standId: string) => {
+      ref.current?.querySelectorAll("svg > g > g[data-selected]").forEach((elt) => {
+        elt.removeAttribute("data-selected");
+        elt.removeAttribute("data-container");
+      });
+      const elements = standGroups[standId];
+      elements?.forEach((elt) => elt.setAttribute("data-selected", ""));
+      elements?.sort((a, b) => {
+        const aRect = a.getBoundingClientRect();
+        const bRect = b.getBoundingClientRect();
+        return bRect.width * bRect.height - aRect.width * aRect.height;
+      });
+      elements?.[0]?.setAttribute("data-container", "");
+    },
+    [standGroups]
+  );
 
   const selectStandNode = (event: any): string | null => {
     let found: string | null = null;
@@ -271,5 +291,5 @@ function useStandNode({ map, stands, ref, authorizedTypes }: UseStandNodeMapProp
     return found;
   };
 
-  return { selectStandNode };
+  return { selectStandNode, markStandNode };
 }
