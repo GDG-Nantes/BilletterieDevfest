@@ -17,7 +17,7 @@ export interface Commande {
   acheteur: Acheteur;
   commandesLiees: Array<Commande>;
   notes: string;
-  stand?: string;
+  stand?: ReservedStand;
 }
 
 export interface Acheteur {
@@ -54,4 +54,10 @@ export interface MarquerCommandePayee {
 export interface Stand {
   id: string;
   reserved: boolean;
+  typeMoquette: string;
+}
+
+export interface ReservedStand {
+  idStand: string;
+  typeMoquette: string;
 }

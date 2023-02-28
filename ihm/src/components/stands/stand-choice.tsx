@@ -1,59 +1,146 @@
-import { AppBar, Button, Grid, Toolbar } from "@mui/material";
+import { AppBar, Button, Grid, Stack, Toolbar, Tooltip } from "@mui/material";
 import React, { MouseEventHandler, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Stand, TypePack } from "../../../../web-server/interfaces/types";
+import { TYPES_MOQUETTE } from "../../../../web-server/interfaces/constantes";
 import { useServices } from "../../services";
 
 import "./stand-choice.scss";
+import { MyButton } from "../links";
+import classNames from "classnames";
 
 export function StandChoice() {
-  const { stands } = useStandList();
-  const { standChoice, setStandChoice, saveChoice } = useStandChoice();
-  const { commande, isLoading, error } = useCommande();
-  if (isLoading) {
+  const { stands, isLoading: isStandsLoading } = useStandList();
+  const [typeMoquetteSelectionnee, setTypeMoquetteSelectionnee] = useState<string | null>(null);
+
+  const { stands: serviceStands } = useServices();
+  const { idCommande } = useParams();
+  const [standChoice, setStandChoice] = useState<string | null>(null);
+
+  const { commande, isLoading: isCommandeLoading, error } = useCommande();
+
+  useEffect(() => {
+    if (commande?.stand != null) {
+      setStandChoice(commande.stand.idStand);
+      setTypeMoquetteSelectionnee(commande.stand.typeMoquette);
+    }
+  }, [commande?.stand]);
+
+  const saveChoice = () => {
+    if (!idCommande) {
+      throw new Error("idCommande is missing");
+    }
+    if (!standChoice) {
+      throw new Error("standChoice is missing");
+    }
+    if (!typeMoquetteSelectionnee) {
+      throw new Error("typeMoquette is missing");
+    }
+    serviceStands
+      .saveChoice(idCommande, standChoice, typeMoquetteSelectionnee)
+      .then(() => window.alert("Choix bien enregistré"))
+      .catch((err) => {
+        window.alert("Une erreur s'est produit lors de l'enregistrement");
+        console.error(err);
+      });
+  };
+
+  if (isStandsLoading || isCommandeLoading) {
     return <></>;
   }
   if (error || !commande) {
     return <div>La commande n'existe pas</div>;
   }
+  if (commande.stand != null) {
+    const standSelectionne = stands?.find((stand) => stand.id === commande.stand?.idStand);
+    if (standSelectionne != null) {
+      standSelectionne.reserved = false;
+    }
+  }
+
+  let messageToolbar;
+  const estCommandeImpayee = commande.paiement.status !== "PAYE";
+  if (estCommandeImpayee) {
+    messageToolbar = `Vous ne pourrez choisir votre stand qu'après avoir payé`;
+  } else if (commande.stand != null) {
+    messageToolbar = `${commande.acheteur.entreprise} a déjà choisi le stand ${commande.stand.idStand}`;
+  } else {
+    messageToolbar = `Choix du stand ${commande.typePack} pour ${commande.acheteur.entreprise}`;
+  }
   return (
     <>
       <AppBar position="static">
         <Toolbar>
-          <h1>
-            {commande.stand == null ? (
-              <>
-                Choix du stand {commande.typePack} pour {commande.acheteur.entreprise}
-              </>
-            ) : (
-              <>
-                {commande.acheteur.entreprise} a déjà choisi le stand {commande.stand}
-              </>
-            )}
-          </h1>
+          <MyButton
+            href={`/commande/${commande.extId}`}
+            variant="outlined"
+            color="secondary"
+            style={{ marginRight: "20px" }}
+          >
+            Espace Partenaire
+          </MyButton>
+          <h1>{messageToolbar}</h1>
         </Toolbar>
       </AppBar>
-      <Grid container className="stand-choice">
-        <Grid item xs={3}>
-          <h2>Stand choisi: {standChoice}</h2>
-          <Button disabled={!standChoice} onClick={saveChoice} variant="contained" color="secondary">
-            Enregistrer mon choix
-          </Button>
-        </Grid>
-        <Grid item xs={9}>
+      <Grid justifyContent="center" container className="stand-choice" spacing={2}>
+        {!estCommandeImpayee && (
+          <>
+            <Grid item xs={10}>
+              <Stack direction="row" spacing={5} alignItems="center">
+                <h2>Stand choisi:</h2>
+                {standChoice != null ? <h2>{standChoice}</h2> : <span>Cliquez sur le stand souhaité ci-dessous</span>}
+              </Stack>
+            </Grid>
+            <Grid item xs={10}>
+              <h2>
+                Moquette choisie: <span style={{ marginLeft: "20px" }}>{typeMoquetteSelectionnee}</span>
+              </h2>
+              <Stack direction="row" spacing={5}>
+                {TYPES_MOQUETTE.map((typeMoquette) => (
+                  <Tooltip title={typeMoquette}>
+                    <div
+                      className={classNames(
+                        "carre-moquette",
+                        typeMoquette,
+                        typeMoquette === typeMoquetteSelectionnee && "selected"
+                      )}
+                      onClick={() => setTypeMoquetteSelectionnee(typeMoquette)}
+                    ></div>
+                  </Tooltip>
+                ))}
+              </Stack>
+            </Grid>
+            <Grid item xs={10}>
+              <Button
+                disabled={!standChoice || !typeMoquetteSelectionnee}
+                onClick={saveChoice}
+                variant="contained"
+                color="secondary"
+                style={{ margin: "20px 0" }}
+              >
+                Enregistrer mon choix
+              </Button>
+            </Grid>
+          </>
+        )}
+        <Grid item md={6} xs={12}>
           <SvgMap
+            disabled={estCommandeImpayee}
             url="/map1.svg"
             stands={stands}
             onClick={setStandChoice}
-            selectedStand={commande.stand}
+            selectedStand={commande.stand?.idStand}
             authorizedTypes={[commande.typePack]}
           />
+        </Grid>
+        <Grid item md={6} xs={12}>
           <SvgMap
+            disabled={estCommandeImpayee}
             url="/map2.svg"
             stands={stands}
             onClick={setStandChoice}
-            selectedStand={commande.stand}
+            selectedStand={commande.stand?.idStand}
             authorizedTypes={[commande.typePack]}
           />
         </Grid>
@@ -78,26 +165,6 @@ function useCommande() {
   return { commande, isLoading, error };
 }
 
-function useStandChoice() {
-  const { stands: serviceStands } = useServices();
-  const { idCommande } = useParams();
-  const navigate = useNavigate();
-  const [standChoice, setStandChoice] = useState<string | null>(null);
-  const saveChoice = () => {
-    if (!idCommande) {
-      throw new Error("idCommande is missing");
-    }
-    if (!standChoice) {
-      throw new Error("standChoice is missing");
-    }
-    serviceStands
-      .saveChoice(idCommande, standChoice)
-      .then(() => navigate(`/stands/${idCommande}/${standChoice}`))
-      .catch((err) => console.error(err));
-  };
-  return { standChoice, setStandChoice, saveChoice };
-}
-
 interface MapProps {
   url: string;
   stands: Stand[] | undefined;
@@ -106,9 +173,17 @@ interface MapProps {
 
   selectedStand?: string;
   authorizedTypes: TypePack[];
+  disabled?: boolean;
 }
 
-const SvgMap = React.memo(function SvgMapRaw({ url, stands, onClick, authorizedTypes, selectedStand }: MapProps) {
+const SvgMap = React.memo(function SvgMapRaw({
+  url,
+  stands,
+  onClick,
+  authorizedTypes,
+  selectedStand,
+  disabled,
+}: MapProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<string | null>(null);
   const { selectStandNode, markStandNode } = useStandNode({ map, ref, stands, authorizedTypes });
@@ -126,16 +201,18 @@ const SvgMap = React.memo(function SvgMapRaw({ url, stands, onClick, authorizedT
   }, [selectedStand, markStandNode]);
 
   const onMapClick: MouseEventHandler<HTMLDivElement> = (event) => {
-    const foundStand = selectStandNode(event);
-    if (foundStand) {
-      onClick(foundStand);
+    if (!disabled) {
+      const foundStand = selectStandNode(event);
+      if (foundStand) {
+        onClick(foundStand);
+      }
     }
   };
 
   return (
     <div
       ref={ref}
-      className="map"
+      className={classNames("map", disabled && "disabled")}
       onClick={onMapClick}
       data-map-url={url}
       dangerouslySetInnerHTML={{ __html: map ?? "" }}
