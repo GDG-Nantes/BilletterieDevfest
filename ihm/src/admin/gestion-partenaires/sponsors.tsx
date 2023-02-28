@@ -1,12 +1,13 @@
-import { Box, Input } from "@mui/material";
-import { Stack } from "@mui/system";
+import { AppBar, Box, Input, Toolbar } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import React from "react";
 import { useQuery } from "react-query";
-import { Commande } from "../../../../web-server/interfaces/types";
+import { Commande, TypePack } from "../../../../web-server/interfaces/types";
 import { MyButton } from "../../components/links";
 import { normalize } from "../../helpers";
 import { useServices } from "../../services";
+
+const LISTE_TYPES_PACK_STANDS: TypePack[] = ["PLATINIUM", "GOLD", "SILVER"];
 
 export const Sponsors = () => {
   const services = useServices();
@@ -33,8 +34,12 @@ export const Sponsors = () => {
   }
 
   return (
-    <Stack direction="column" spacing={2} height="100%" width="100%">
-      <Input value={filtre} onChange={(e) => setFiltre(e.target.value)} placeholder="Recherche" />
+    <>
+      <AppBar sx={{ marginBottom: "20px" }} position="static">
+        <Toolbar>
+          <Input fullWidth value={filtre} onChange={(e) => setFiltre(e.target.value)} placeholder="Recherche" />
+        </Toolbar>
+      </AppBar>
 
       <DataGrid
         loading={isLoading}
@@ -74,6 +79,12 @@ export const Sponsors = () => {
             width: 150,
           },
           {
+            field: "stand",
+            headerName: "Stand",
+            align: "center",
+            headerAlign: "center",
+          },
+          {
             field: "options",
             headerName: "Options",
             valueGetter: ({ row }) => row.options.join(", "),
@@ -84,30 +95,27 @@ export const Sponsors = () => {
             headerName: "Actions",
             type: "actions",
             getActions: (params) => [
-              <MyButton href={params.row.lienGestionCommande}>Billetweb</MyButton>,
-              <MyButton href={`/admin/sponsors/${params.row.extId}`}>Recap Partenaire</MyButton>,
+              <MyButton href={params.row.lienGestionCommande} color="secondary">
+                Billetweb
+              </MyButton>,
+              <MyButton href={`/admin/sponsors/${params.row.extId}`} color="secondary" variant="contained">
+                Recap
+              </MyButton>,
+              <>
+                {LISTE_TYPES_PACK_STANDS.includes(params.row.typePack) && (
+                  <MyButton href={`/stands/${params.row.extId}`} color="secondary" variant="outlined">
+                    Choix Stand
+                  </MyButton>
+                )}
+              </>,
             ],
-            align: "right",
+            align: "left",
             width: 400,
           },
-          // {
-          //   field: "commandesLiees",
-          //   headerName: "Commandes liées",
-          //   renderCell: (params: GridRenderCellParams<Commande[]>) => (
-          //     <>
-          //       {params.value?.map((c) => (
-          //         <div>
-          //           <MyButton href={c.lienGestionCommande}>Commande liée</MyButton>
-          //           <MyButton href={`/admin/sponsors/${c.extId}`}>{c.extId}</MyButton>
-          //         </div>
-          //       ))}
-          //     </>
-          //   ),
-          //   width: 300,
-          // },
         ]}
         hideFooterPagination
+        hideFooter
       />
-    </Stack>
+    </>
   );
 };

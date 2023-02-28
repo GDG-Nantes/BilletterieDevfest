@@ -7,15 +7,18 @@ import { CONFIG } from "./config";
 import "./index.css";
 import { RouterPartenaires } from "./partenaires/router";
 import { ServiceProvider } from "./services";
+import { ThemeDevfest } from "./layout/layout";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <AuthenticationProvider clientId={CONFIG.authClientId}>
       <ServiceProvider>
-        <BrowserRouter>
-          <RouterPartenaires />
-          <RouterAdmin />
-        </BrowserRouter>
+        <ThemeDevfest>
+          <BrowserRouter>
+            <RouterPartenaires />
+            <RouterAdmin />
+          </BrowserRouter>
+        </ThemeDevfest>
       </ServiceProvider>
     </AuthenticationProvider>
   </React.StrictMode>

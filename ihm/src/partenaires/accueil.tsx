@@ -1,8 +1,6 @@
-import { Typography } from "@mui/material";
-import { Container } from "@mui/system";
+import { Navigate } from "react-router-dom";
 
-export const Accueil: React.FC = () => (
-  <Container>
-    <Typography>Un peu de patience, la billetterie n'est pas ouverte</Typography>
-  </Container>
-);
+export const Accueil: React.FC = () => {
+  window.location.href = "https://devfest.gdgnantes.com";
+  return null
+};

@@ -6,10 +6,12 @@ import { useUser } from "../auth";
 import { CONFIG } from "../config";
 import { ServicesAdmin } from "./admin";
 import { ServicesPartenaires } from "./partenaires";
+import { ServiceStands } from "./stands";
 
 class Services {
   public admin: ServicesAdmin;
   public partenaires: ServicesPartenaires;
+  public stands: ServiceStands;
 
   constructor(token?: string) {
     this.admin = new ServicesAdmin(
@@ -21,6 +23,11 @@ class Services {
       })
     );
     this.partenaires = new ServicesPartenaires(
+      axios.create({
+        baseURL: CONFIG.apiBaseUrl,
+      })
+    );
+    this.stands = new ServiceStands(
       axios.create({
         baseURL: CONFIG.apiBaseUrl,
       })

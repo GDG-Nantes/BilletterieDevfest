@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { AppBar, Box, Container, Toolbar } from "@mui/material";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import { useServices } from "../../services";
@@ -28,11 +28,22 @@ export const RecapSponsor = () => {
 
   return (
     <>
-      <Typography variant="h1">{commande.acheteur.entreprise}</Typography>
-      <MyButton href={commande.lienGestionCommande}>Gérer la commande Billetweb</MyButton>
-      <Box>
-        <pre>{JSON.stringify(commande, null, 2)}</pre>
-      </Box>
+      <AppBar position="static" sx={{ marginBottom: "20px" }}>
+        <Toolbar>
+          <h1 style={{ flexGrow: 1 }}>{commande.acheteur.entreprise}</h1>
+          <MyButton href={commande.lienGestionCommande} color="secondary">
+            Gérer la commande Billetweb
+          </MyButton>
+        </Toolbar>
+      </AppBar>
+      <Container>
+        <MyButton color="secondary" variant="outlined" href={`/stands/${idCommande}`}>
+          Lien vers le choix des stands
+        </MyButton>
+        <Box>
+          <pre>{JSON.stringify(commande, null, 2)}</pre>
+        </Box>
+      </Container>
     </>
   );
 };
