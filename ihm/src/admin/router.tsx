@@ -9,7 +9,7 @@ export const RouterAdmin = () => (
       <Route index element={<Navigate to={"/admin/sponsors"} />} />
       <Route path="sponsors">
         <Route index element={<Sponsors />} />
-        <Route path=":idCommande" element={<RecapSponsor />} />
+        <Route path=":idCommande" element={<RecapSponsor displayJson />} />
       </Route>
     </Route>
   </Routes>

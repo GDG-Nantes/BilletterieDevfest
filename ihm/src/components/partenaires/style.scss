@@ -1,0 +1,32 @@
+.recap-sponsor {
+ .MuiCard-root {
+   color: var(--primary);
+   background-color: var(--tertiary);
+   min-height: 400px;
+   display: flex;
+   flex-direction: column;
+
+   .MuiCardContent-root {
+     flex-grow: 1;
+   }
+   .MuiCardActions-root {
+     justify-content: center;
+   }
+
+   &.warning {
+     .MuiCardHeader-title {
+       color: var(--secondary);
+       font-weight: bold;
+     }
+     border: 5px solid var(--secondary);
+   }
+
+   &.ok {
+     .MuiCardHeader-title {
+       color: var(--green);
+       font-weight: bold;
+     }
+     border: 5px solid var(--green);
+   }
+ }
+}
