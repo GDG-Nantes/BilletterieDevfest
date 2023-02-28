@@ -83,6 +83,7 @@ export const Sponsors = () => {
             headerName: "Stand",
             align: "center",
             headerAlign: "center",
+            valueGetter: ({ row }) => (row.stand != null ? row.stand.idStand + " - " + row.stand.typeMoquette : null),
           },
           {
             field: "options",

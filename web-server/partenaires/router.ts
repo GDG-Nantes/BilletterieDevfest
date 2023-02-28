@@ -38,14 +38,18 @@ routerPartenaires.get("/stands", async (req, res) => {
 routerPartenaires.post("/stands/:idCommande", async (req, res) => {
   const { idCommande } = req.params;
   const { idStand, typeMoquette } = req.body;
-  const reserved = await getReservedStands();
+  const reservedStands = await getReservedStands();
   const commande = await BilletWebApi.consulterCommande(idCommande);
+
+  const reservedStand = reservedStands
+    .filter((reservedStand) => reservedStand.idCommande !== idCommande)
+    .find((reservedStand) => reservedStand.idStand === idStand);
 
   if (commande.paiement.status != "PAYE") {
     res.statusCode = 400;
     res.statusMessage = ERROR_CODES.NOT_PAID;
     res.end("Vous n'avez pas encore payé la facture");
-  } else if (reserved.some((reservedStand) => reservedStand.idStand === idStand)) {
+  } else if (reservedStand != null) {
     res.statusCode = 400;
     res.statusMessage = ERROR_CODES.ALREADY_RESERVED_STAND;
     res.end("Ce stand a déja été réservé.");
