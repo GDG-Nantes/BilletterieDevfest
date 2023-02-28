@@ -63,6 +63,16 @@
         }
         &.Aucune {
             background-color: white;
+            &::after {
+                content: "✖";
+                color: grey;
+                font-size: 30px;
+                text-align: center;
+                width: 30px;
+                height: 30px;
+                position: absolute;
+                margin-top: -5px;
+            }
         }
     }
 }

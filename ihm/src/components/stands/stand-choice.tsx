@@ -1,4 +1,4 @@
-import { AppBar, Button, Grid, Stack, Toolbar, Tooltip } from "@mui/material";
+import { AppBar, Button, Container, Grid, Stack, Toolbar, Tooltip } from "@mui/material";
 import React, { MouseEventHandler, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
@@ -83,71 +83,89 @@ export function StandChoice() {
           <h1>{messageToolbar}</h1>
         </Toolbar>
       </AppBar>
-      <Grid justifyContent="center" container className="stand-choice" spacing={2}>
+      <Stack className="stand-choice" spacing={2} style={{ marginTop: "20px" }}>
         {!estCommandeImpayee && (
-          <>
-            <Grid item xs={10}>
-              <Stack direction="row" spacing={5} alignItems="center">
-                <h2>Stand choisi:</h2>
-                {standChoice != null ? <h2>{standChoice}</h2> : <span>Cliquez sur le stand souhaité ci-dessous</span>}
-              </Stack>
-            </Grid>
-            <Grid item xs={10}>
-              <h2>
-                Moquette choisie: <span style={{ marginLeft: "20px" }}>{typeMoquetteSelectionnee}</span>
-              </h2>
-              <Stack direction="row" spacing={5}>
-                {TYPES_MOQUETTE.map((typeMoquette) => (
-                  <Tooltip title={typeMoquette}>
-                    <div
-                      className={classNames(
-                        "carre-moquette",
-                        typeMoquette,
-                        typeMoquette === typeMoquetteSelectionnee && "selected"
-                      )}
-                      onClick={() => setTypeMoquetteSelectionnee(typeMoquette)}
-                    ></div>
-                  </Tooltip>
-                ))}
-              </Stack>
-            </Grid>
-            <Grid item xs={10}>
-              <Button
-                disabled={!standChoice || !typeMoquetteSelectionnee}
-                onClick={saveChoice}
-                variant="contained"
-                color="secondary"
-                style={{ margin: "20px 0" }}
-              >
-                Enregistrer mon choix
-              </Button>
-            </Grid>
-          </>
+          <StandChoiceForm
+            standChoice={standChoice}
+            typeMoquetteSelectionnee={typeMoquetteSelectionnee}
+            onSave={saveChoice}
+            onSelectionMoquette={setTypeMoquetteSelectionnee}
+          />
         )}
-        <Grid item md={6} xs={12}>
-          <SvgMap
-            disabled={estCommandeImpayee}
-            url="/map1.svg"
-            stands={stands}
-            onClick={setStandChoice}
-            selectedStand={commande.stand?.idStand}
-            authorizedTypes={[commande.typePack]}
-          />
+        <Grid container spacing={2}>
+          <Grid item md={6} xs={12}>
+            <SvgMap
+              disabled={estCommandeImpayee}
+              url="/map1.svg"
+              stands={stands}
+              onClick={setStandChoice}
+              selectedStand={commande.stand?.idStand}
+              authorizedTypes={[commande.typePack]}
+            />
+          </Grid>
+          <Grid item md={6} xs={12}>
+            <SvgMap
+              disabled={estCommandeImpayee}
+              url="/map2.svg"
+              stands={stands}
+              onClick={setStandChoice}
+              selectedStand={commande.stand?.idStand}
+              authorizedTypes={[commande.typePack]}
+            />
+          </Grid>
         </Grid>
-        <Grid item md={6} xs={12}>
-          <SvgMap
-            disabled={estCommandeImpayee}
-            url="/map2.svg"
-            stands={stands}
-            onClick={setStandChoice}
-            selectedStand={commande.stand?.idStand}
-            authorizedTypes={[commande.typePack]}
-          />
-        </Grid>
-      </Grid>
+      </Stack>
     </>
   );
 }
+
+const StandChoiceForm: React.FC<{
+  standChoice: string | null;
+  typeMoquetteSelectionnee: string | null;
+  onSelectionMoquette: (typeMoquette: string) => void;
+  onSave: () => void;
+}> = ({ standChoice, typeMoquetteSelectionnee, onSelectionMoquette, onSave }) => {
+  return (
+    <Container>
+      <Stack>
+        <Stack direction="row" spacing={5} alignItems="center">
+          <h2>Stand choisi:</h2>
+          {standChoice != null ? <h2>{standChoice}</h2> : <span>Cliquez sur le stand souhaité ci-dessous</span>}
+        </Stack>
+        <Stack>
+          <h2>
+            Moquette choisie: <span style={{ marginLeft: "20px" }}>{typeMoquetteSelectionnee}</span>
+          </h2>
+          <Stack direction="row" spacing={5}>
+            {TYPES_MOQUETTE.map((typeMoquette) => (
+              <Tooltip title={typeMoquette}>
+                <div
+                  className={classNames(
+                    "carre-moquette",
+                    typeMoquette,
+                    typeMoquette === typeMoquetteSelectionnee && "selected"
+                  )}
+                  onClick={() => onSelectionMoquette(typeMoquette)}
+                ></div>
+              </Tooltip>
+            ))}
+          </Stack>
+        </Stack>
+        <div>
+          <Button
+            disabled={!standChoice || !typeMoquetteSelectionnee}
+            onClick={onSave}
+            variant="contained"
+            color="secondary"
+            style={{ margin: "20px 0" }}
+          >
+            Enregistrer mon choix
+          </Button>
+        </div>
+      </Stack>
+    </Container>
+  );
+};
 
 function useStandList() {
   const { stands: serviceStands } = useServices();
