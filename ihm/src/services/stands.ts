@@ -12,7 +12,7 @@ export class ServiceStands {
     return this.client.get<Stand[]>(`/stands`).then((res) => res.data);
   }
 
-  saveChoice(idCommande: string, standId: string): Promise<unknown> {
-    return this.client.post(`/stands/${idCommande}/${standId}`);
+  saveChoice(idCommande: string, idStand: string, typeMoquette: string): Promise<unknown> {
+    return this.client.post(`/stands/${idCommande}`, { idStand, typeMoquette });
   }
 }

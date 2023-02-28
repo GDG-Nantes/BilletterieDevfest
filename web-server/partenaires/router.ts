@@ -3,6 +3,7 @@ import { BilletWebApi } from "../billetweb/api";
 import STANDS from "../stands/stands.json";
 import { ERROR_CODES } from "../interfaces/errors";
 import { getReservedStand, getReservedStands, saveReservedStands } from "../stands";
+import { TYPES_MOQUETTE } from "../interfaces/constantes";
 
 const routerPartenaires = express.Router();
 
@@ -23,28 +24,37 @@ routerPartenaires.get("/commandes/:idCommande", async (req, res) => {
 routerPartenaires.get("/stands", async (req, res) => {
   const reservedStands = await getReservedStands();
   res.json(
-    STANDS.map((id) => ({
-      id,
-      reserved: reservedStands.some((reservedStand) => reservedStand.stand === id),
-    }))
+    STANDS.map((id) => {
+      const matchingStand = reservedStands.find((reservedStand) => reservedStand.idStand === id);
+      return {
+        id,
+        reserved: matchingStand != null,
+        typeMoquette: matchingStand?.typeMoquette,
+      };
+    })
   );
 });
 
-routerPartenaires.post("/stands/:idCommande/:idStand", async (req, res) => {
-  const { idCommande, idStand } = req.params;
+routerPartenaires.post("/stands/:idCommande", async (req, res) => {
+  const { idCommande } = req.params;
+  const { idStand, typeMoquette } = req.body;
   const reserved = await getReservedStands();
   const commande = await BilletWebApi.consulterCommande(idCommande);
 
   if (commande.paiement.status != "PAYE") {
     res.statusCode = 400;
     res.statusMessage = ERROR_CODES.NOT_PAID;
-    res.end("You haven't paid your bill yet");
-  } else if (reserved.some((reservedStand) => reservedStand.stand === idStand)) {
+    res.end("Vous n'avez pas encore payé la facture");
+  } else if (reserved.some((reservedStand) => reservedStand.idStand === idStand)) {
     res.statusCode = 400;
     res.statusMessage = ERROR_CODES.ALREADY_RESERVED_STAND;
-    res.end("This stand was reserved while you made your choice.");
+    res.end("Ce stand a déja été réservé.");
+  } else if (!TYPES_MOQUETTE.includes(typeMoquette)) {
+    res.statusCode = 400;
+    res.statusMessage = ERROR_CODES.MOQUETTE_INEXISTANTE;
+    res.end("Ce choix de couleur de moquette n'existe pas.");
   } else {
-    await saveReservedStands(idCommande, idStand, commande);
+    await saveReservedStands(idCommande, idStand, typeMoquette, commande);
 
     res.statusCode = 201;
     res.end("Saved");
