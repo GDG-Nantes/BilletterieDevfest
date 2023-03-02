@@ -16,8 +16,7 @@ export const CONFIG = {
     apiKey: process.env.BILLETWEB_API_KEY,
     user: "9964",
     // event: "524659", // 2022
-    // event: "772240", // 2023-test
-    event: "798592", // 2023-test-new
+    event: process.env.BILLETWEB_EVENT_ID || "798592", // 2023-test
     // event: "790192", // 2023
   },
   mailgun: {
