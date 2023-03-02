@@ -34,9 +34,7 @@ export const BilletWebApi = {
 
   consulterCommande: async function (idCommande: string): Promise<Commande> {
     const response = await axiosClientBilletWeb.get<Attendee[]>("attendees");
-    const attendees: Attendee[] = response.data.filter(
-      (attendee) => attendee.order_ext_id === idCommande
-    );
+    const attendees: Attendee[] = response.data.filter((attendee) => attendee.order_ext_id === idCommande);
 
     return convertirAttendeesEnCommandes(attendees)[0];
   },
@@ -63,9 +61,7 @@ export const BilletWebApi = {
       }
     );
     if (res.data.length === 0) {
-      throw new Error(
-        `Erreur lors de l'appel à Billetweb pour la commande ${idCommande}`
-      );
+      throw new Error(`Erreur lors de l'appel à Billetweb pour la commande ${idCommande}`);
     }
   },
 };
@@ -74,9 +70,7 @@ function convertirAttendeesEnCommandes(attendees: Attendee[]) {
   const commandes: { [id: string]: Commande } = {};
   // On récupère d'abord toutes les demandes de partenariats
   attendees
-    .filter((attendee) =>
-      LISTE_TYPES_PACK.includes(calculerTypeTicket(attendee.ticket) as TypePack)
-    )
+    .filter((attendee) => LISTE_TYPES_PACK.includes(calculerTypeTicket(attendee.ticket) as TypePack))
     .forEach((attendee) => {
       if (commandes[attendee.order_id] == null) {
         commandes[attendee.order_id] = initialiserCommande(attendee);
@@ -92,8 +86,7 @@ function convertirAttendeesEnCommandes(attendees: Attendee[]) {
     // dans ce cas là, le lien est fait par le champ entreprise
     if (commande == null) {
       commande = Object.values(commandes).find(
-        (commande) =>
-          commande.acheteur.entreprise === attendee.custom_order.Entreprise
+        (commande) => commande.acheteur.entreprise === attendee.custom_order.Entreprise
       ) as Commande | null;
 
       // Si on trouve une commande fait par la même entreprise, on ajoute au montant et une note pour s'y retrouver
@@ -130,14 +123,7 @@ function convertirAttendeesEnCommandes(attendees: Attendee[]) {
   return Object.values(commandes);
 }
 
-export const LISTE_TYPES_PACK: TypePack[] = [
-  "PLATINIUM",
-  "GOLD",
-  "SILVER",
-  "VIRTUEL",
-  "JOBBOARD",
-  "VELOTYPIE",
-];
+export const LISTE_TYPES_PACK: TypePack[] = ["PLATINIUM", "GOLD", "SILVER", "VIRTUEL", "JOBBOARD", "VELOTYPIE"];
 
 export const LISTE_OPTIONS: OptionsPack[] = [
   "PLATINIUM_XL",
@@ -160,7 +146,7 @@ function calculerTypeTicket(ticket: string): OptionsPack | TypePack | "IGNORE" {
     "Pack Partenaire Devfest - Platinium": "PLATINIUM",
 
     "Pack Partenaire AfterParty": "AFTER",
-    "Option PXL": "PLATINIUM_XL",
+    "Avantage PXL": "PLATINIUM_XL",
     "Partenaire annuel GDG Nantes": "ANNUEL",
     "Internet : Connexion filaire 16Mbps": "INTERNET_16Mbps",
     "Electricité : second bloc électrique de 3KW": "ELECTRICITE_6kW",
@@ -180,19 +166,15 @@ function calculerTypeTicket(ticket: string): OptionsPack | TypePack | "IGNORE" {
     "Votre logo sur la page partenaire du Devfest": "IGNORE",
     "Votre logo sur le site du Devfest": "IGNORE",
     "Communication sur nos réseaux sociaux": "IGNORE",
-    "Article de votre choix dans notre newsletter et le blog du site web du Devfest":
-      "IGNORE",
+    "Article de votre choix dans notre newsletter et le blog du site web du Devfest": "IGNORE",
   };
   return selectValueByRegexp(ticket, regexpTypeTicket) || "UNKNOWN";
 }
 
-function selectValueByRegexp<T>(
-  label: string,
-  regexpValues: { [r: string]: T }
-): T | null {
-  const entryTypePack: [string, T] | undefined = Object.entries(
-    regexpValues
-  ).filter(([r]) => new RegExp(r, "i").test(label))[0];
+function selectValueByRegexp<T>(label: string, regexpValues: { [r: string]: T }): T | null {
+  const entryTypePack: [string, T] | undefined = Object.entries(regexpValues).filter(([r]) =>
+    new RegExp(r, "i").test(label)
+  )[0];
   if (entryTypePack != null) {
     return entryTypePack[1];
   }
@@ -220,10 +202,8 @@ function initialiserCommande(commandeSponsor: Attendee): Commande {
       pays: commandeSponsor.custom_order.Pays,
 
       nomCom: commandeSponsor.custom_order["Nom du responsable communication"],
-      mailCom:
-        commandeSponsor.custom_order["Mail du responsable communication"],
-      nomCompta:
-        commandeSponsor.custom_order["Nom contact service comptabilité"],
+      mailCom: commandeSponsor.custom_order["Mail du responsable communication"],
+      nomCompta: commandeSponsor.custom_order["Nom contact service comptabilité"],
       mailCompta: commandeSponsor.custom_order["Mail du service comptabilité"],
     },
     paiement: {

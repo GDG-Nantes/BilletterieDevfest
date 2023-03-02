@@ -1,13 +1,14 @@
-import { AppBar, Input, Toolbar } from "@mui/material";
+import { Input } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import React from "react";
 import { useQuery } from "react-query";
-import { Commande, TypePack } from "../../../../web-server/interfaces/types";
-import { MyButton } from "../../components/links";
-import { normalize } from "../../helpers";
-import { useServices } from "../../services";
+import { Commande, TypePack } from "../../../web-server/interfaces/types";
+import { MyButton } from "../components/links";
+import { normalize } from "../helpers";
+import { useServices } from "../services";
+import { Navbar } from "../layout/layout";
 
-const LISTE_TYPES_PACK_STANDS: TypePack[] = ["PLATINIUM", "GOLD", "SILVER"];
+const LISTE_TYPES_PACK_STANDS: TypePack[] = ["PLATINIUM", "GOLD", "SILVER", "JOBBOARD"];
 
 export const Sponsors = () => {
   const services = useServices();
@@ -37,11 +38,12 @@ export const Sponsors = () => {
 
   return (
     <>
-      <AppBar sx={{ marginBottom: "20px" }} position="static">
-        <Toolbar>
-          <Input fullWidth value={filtre} onChange={(e) => setFiltre(e.target.value)} placeholder="Recherche" />
-        </Toolbar>
-      </AppBar>
+      <Navbar title={"Admin Billetterie"}>
+        <Input fullWidth value={filtre} onChange={(e) => setFiltre(e.target.value)} placeholder="Recherche" />
+        <MyButton href={`/admin/map`} variant="outlined" color="secondary" style={{ marginRight: "20px" }}>
+          Plan
+        </MyButton>
+      </Navbar>
 
       <DataGrid
         loading={isLoading}

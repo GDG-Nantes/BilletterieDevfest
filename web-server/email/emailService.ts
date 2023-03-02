@@ -2,15 +2,20 @@ import Mailgun from "mailgun.js";
 import formData from "form-data";
 import { CONFIG } from "../config";
 import { Commande, ReservedStand } from "../interfaces/types";
+import Client from "mailgun.js/client";
 
-const mailgun = new Mailgun(formData).client({
-  username: "api",
-  key: CONFIG.mailgun.apiKey || "",
-  url: "https://api.eu.mailgun.net",
-});
+let mailgun: Client | null = null;
+
+if (CONFIG.mailgun.apiKey != "" && CONFIG.mailgun.apiKey != null) {
+  mailgun = new Mailgun(formData).client({
+    username: "api",
+    key: CONFIG.mailgun.apiKey || "",
+    url: "https://api.eu.mailgun.net",
+  });
+}
 
 export async function sendEmail(to: string, cc: string[], subject: string, html: string) {
-  if (CONFIG.mailgun.apiKey != "" && CONFIG.mailgun.apiKey != null) {
+  if (mailgun != null) {
     try {
       const messagesSendResult = await mailgun.messages.create(CONFIG.mailgun.domain, {
         from: `Billetterie Devfest Nantes <billetterie@${CONFIG.mailgun.domain}>`,
