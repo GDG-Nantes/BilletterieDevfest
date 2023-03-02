@@ -12,7 +12,7 @@ const datastore = new Datastore({
 export async function getReservedStands(): Promise<Array<{ idCommande: string } & ReservedStand>> {
   const [entities] = await datastore.runQuery(datastore.createQuery("sponsors"));
   return entities.map((entity) => ({
-    idStand: entity.stand,
+    idStand: entity.idStand,
     typeMoquette: entity.typeMoquette,
     email: entity.email,
     idCommande: entity[KEY_SYMBOL].name,
