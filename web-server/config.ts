@@ -5,9 +5,6 @@ config();
 if (process.env.BILLETWEB_API_KEY == null) {
   throw new Error("BILLETWEB_API_KEY has no value");
 }
-if (process.env.MAILGUN_API_KEY == null) {
-  throw new Error("MAILGUN_API_KEY has no value");
-}
 if (process.env["AUTH_DISABLED"] == "true") {
   console.warn("Starting without Admin Authentication");
 }

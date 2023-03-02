@@ -5,25 +5,27 @@ import { Commande, ReservedStand } from "../interfaces/types";
 
 const mailgun = new Mailgun(formData).client({
   username: "api",
-  key: CONFIG.mailgun.apiKey,
+  key: CONFIG.mailgun.apiKey || "",
   url: "https://api.eu.mailgun.net",
 });
 
 export async function sendEmail(to: string, cc: string[], subject: string, html: string) {
-  try {
-    const messagesSendResult = await mailgun.messages.create(CONFIG.mailgun.domain, {
-      from: `Billetterie Devfest Nantes <billetterie@${CONFIG.mailgun.domain}>`,
-      to: [to],
-      cc: cc.join(","),
-      subject,
-      html,
-    });
-    console.log(
-      `Email ${to} ${messagesSendResult.status}, ${messagesSendResult.details}, ${messagesSendResult.message}`
-    );
-  } catch (e) {
-    console.error("Erreur lors de l'envoie de l'email", e);
-    throw e;
+  if (CONFIG.mailgun.apiKey != "" && CONFIG.mailgun.apiKey != null) {
+    try {
+      const messagesSendResult = await mailgun.messages.create(CONFIG.mailgun.domain, {
+        from: `Billetterie Devfest Nantes <billetterie@${CONFIG.mailgun.domain}>`,
+        to: [to],
+        cc: cc.join(","),
+        subject,
+        html,
+      });
+      console.log(
+        `Email ${to} ${messagesSendResult.status}, ${messagesSendResult.details}, ${messagesSendResult.message}`
+      );
+    } catch (e) {
+      console.error("Erreur lors de l'envoie de l'email", e);
+      throw e;
+    }
   }
 }
 

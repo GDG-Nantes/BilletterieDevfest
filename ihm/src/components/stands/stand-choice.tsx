@@ -33,7 +33,7 @@ export function StandChoice() {
   const saveChoice = (data: ReservedStand) => {
     serviceStands
       .saveChoice(idCommande, data)
-      .then(() => window.alert("Choix bien enregistré"))
+      .then(() => (window.location.href = `/commande/${idCommande}`))
       .catch((err) => {
         console.error(err);
         window.location.reload();
