@@ -54,7 +54,7 @@ routerPartenaires.post("/stands/:idCommande", async (req, res) => {
     res.statusCode = 400;
     res.statusMessage = ERROR_CODES.ALREADY_RESERVED_STAND;
     res.end("Ce stand a déja été réservé.");
-  } else if (isStandValideCommande(commande, dataIn)) {
+  } else if (!isStandValideCommande(commande, dataIn)) {
     res.statusCode = 400;
     res.statusMessage = ERROR_CODES.FORBIDDEN_STAND;
     res.end("Vous n'avez pas le droit de réserver ce stand.");
