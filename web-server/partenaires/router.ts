@@ -5,6 +5,7 @@ import { ERROR_CODES } from "../interfaces/errors";
 import { getReservedStand, getReservedStands, saveReservedStands } from "../stands";
 import { TYPES_MOQUETTE } from "../interfaces/constantes";
 import { Commande, ReservedStand, TypePack } from "../interfaces/types";
+import { buildHtmlValidationEmail, sendEmail } from "../email/emailService";
 
 const routerPartenaires = express.Router();
 
@@ -64,7 +65,12 @@ routerPartenaires.post("/stands/:idCommande", async (req, res) => {
     res.end("Ce choix de couleur de moquette n'existe pas.");
   } else {
     await saveReservedStands(idCommande, dataIn, commande);
-
+    sendEmail(
+      dataIn.email,
+      ["contact@gdgnantes.com", commande.acheteur.email],
+      "Réservation du stand Devfest Nantes 2023 confirmée",
+      buildHtmlValidationEmail(dataIn, commande)
+    );
     res.statusCode = 201;
     res.end("Saved");
   }

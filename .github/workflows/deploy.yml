@@ -43,6 +43,7 @@ jobs:
         run: |
           cd web-server
           echo "BILLETWEB_API_KEY=${{ secrets.BILLETWEB_API_KEY }}" > .env
+          echo "MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}" >> .env
 
       - id: "deploy"
         name: "Deploy to App Engine"
