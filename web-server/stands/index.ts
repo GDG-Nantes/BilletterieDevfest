@@ -14,6 +14,7 @@ export async function getReservedStands(): Promise<Array<{ idCommande: string } 
   return entities.map((entity) => ({
     idStand: entity.stand,
     typeMoquette: entity.typeMoquette,
+    email: entity.email,
     idCommande: entity[KEY_SYMBOL].name,
   }));
 }
@@ -25,19 +26,14 @@ export async function getReservedStand(idCommande: string): Promise<ReservedStan
   if (entities.length == 0) {
     return null;
   }
-  const entity = entities[0];
-  return { idStand: entity.stand, typeMoquette: entity.typeMoquette };
+  const entity = entities[0] as ReservedStand;
+  return { idStand: entity.idStand, typeMoquette: entity.typeMoquette, email: entity.email };
 }
 
-export async function saveReservedStands(
-  idCommande: string,
-  idStand: string,
-  typeMoquette: string,
-  commande: Commande
-) {
+export async function saveReservedStands(idCommande: string, dataIn: ReservedStand, commande: Commande) {
   const reservedOn = formatISO(new Date());
   const key = datastore.key(["sponsors", idCommande]);
-  const data = { stand: idStand, typeMoquette, reservedOn, entreprise: commande.acheteur.entreprise };
+  const data = { ...dataIn, reservedOn, entreprise: commande.acheteur.entreprise };
   const standAttribution = {
     key,
     data,

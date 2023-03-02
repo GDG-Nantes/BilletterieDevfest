@@ -60,4 +60,5 @@ export interface Stand {
 export interface ReservedStand {
   idStand: string;
   typeMoquette: string;
+  email: string;
 }

@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { RouterAdmin } from "./admin/router";
 import { AuthenticationProvider } from "./auth";
 import { CONFIG } from "./config";
-import "./index.css";
+import "./index.scss";
 import { RouterPartenaires } from "./partenaires/router";
 import { ServiceProvider } from "./services";
 import { ThemeDevfest } from "./layout/layout";

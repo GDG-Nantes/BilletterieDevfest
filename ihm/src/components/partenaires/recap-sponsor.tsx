@@ -1,5 +1,4 @@
 import {
-  AppBar,
   Box,
   Card,
   CardActions,
@@ -9,7 +8,6 @@ import {
   Grid,
   List,
   ListItem,
-  Toolbar,
   Typography,
 } from "@mui/material";
 import { useQuery } from "react-query";
@@ -19,6 +17,7 @@ import { MyButton } from "../links";
 import { Commande, OptionsPack } from "../../../../web-server/interfaces/types";
 import "./style.scss";
 import classNames from "classnames";
+import { Navbar } from "../../layout/layout";
 
 export const RecapSponsor: React.FC<{ displayJson?: boolean }> = ({ displayJson }) => {
   const { partenaires: servicesPartenaires } = useServices();
@@ -44,14 +43,11 @@ export const RecapSponsor: React.FC<{ displayJson?: boolean }> = ({ displayJson 
 
   return (
     <>
-      <AppBar position="static" sx={{ marginBottom: "20px" }}>
-        <Toolbar>
-          <h1 style={{ flexGrow: 1 }}>{commande.acheteur.entreprise}</h1>
-          <MyButton href={commande.lienGestionCommande} color="secondary">
-            Gérer la commande Billetweb
-          </MyButton>
-        </Toolbar>
-      </AppBar>
+      <Navbar title={commande.acheteur.entreprise}>
+        <MyButton href={commande.lienGestionCommande} color="secondary">
+          Gérer la commande Billetweb
+        </MyButton>
+      </Navbar>
       <Container className="recap-sponsor">
         <Grid container spacing={2}>
           <Grid item md={4} xs={12}>
@@ -93,7 +89,7 @@ const CardSponsoring: React.FC<{ commande: Commande }> = ({ commande }) => {
             <strong>Prix TTC</strong>: {commande.paiement.montantTotalTTC} €
           </ListItem>
           <ListItem>
-            <strong>Prix TTC</strong>: {estCommandePayee ? "Payé ✔" : "Non Payé ❌"}
+            <strong>Status</strong>: {estCommandePayee ? "Paiement reçu ✔" : "Paiement non reçu ❌"}
           </ListItem>
         </List>
       </CardContent>

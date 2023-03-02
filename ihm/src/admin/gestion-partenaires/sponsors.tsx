@@ -1,4 +1,4 @@
-import { AppBar, Box, Input, Toolbar } from "@mui/material";
+import { AppBar, Input, Toolbar } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import React from "react";
 import { useQuery } from "react-query";
@@ -30,7 +30,9 @@ export const Sponsors = () => {
   }, [commandes, filtre]);
 
   if (error) {
-    return <Box>error</Box>;
+    console.error(error);
+    window.location.reload();
+    return <></>;
   }
 
   return (
@@ -44,16 +46,18 @@ export const Sponsors = () => {
       <DataGrid
         loading={isLoading}
         rows={commandesFiltrees}
+        getRowHeight={() => "auto"}
         columns={[
           {
             field: "entreprise",
             headerName: "Entreprise",
+            flex: 1,
             valueGetter: ({ row }) => row.acheteur.entreprise,
-            width: 300,
           },
           {
             field: "typePack",
             headerName: "Pack",
+            flex: 0.4,
           },
           {
             field: "paiement",
@@ -61,6 +65,7 @@ export const Sponsors = () => {
             valueGetter: ({ row }) => row.paiement.status === "PAYE",
             type: "boolean",
             editable: true,
+            flex: 0.3,
             valueSetter: (params) => {
               if (params.value) {
                 services.admin.marquerCommandePayee(params.row.id).then(() => refetch());
@@ -74,33 +79,38 @@ export const Sponsors = () => {
             field: "paiement.montantTotalTTC",
             headerName: "Montant (TTC)",
             type: "number",
+            flex: 0.4,
             valueGetter: ({ row }) => row.paiement.montantTotalTTC,
             valueFormatter: ({ value }) => value + " €",
-            width: 150,
           },
           {
             field: "stand",
             headerName: "Stand",
             align: "center",
             headerAlign: "center",
+            flex: 0.5,
             valueGetter: ({ row }) => (row.stand != null ? row.stand.idStand + " - " + row.stand.typeMoquette : null),
           },
           {
             field: "options",
             headerName: "Options",
+            flex: 0.7,
             valueGetter: ({ row }) => row.options.join(", "),
-            width: 300,
           },
           {
             field: "actions",
             headerName: "Actions",
             type: "actions",
+            flex: 2,
             getActions: (params) => [
-              <MyButton href={params.row.lienGestionCommande} color="secondary">
+              <MyButton href={params.row.lienGestionCommande} color="secondary" variant="contained">
                 Billetweb
               </MyButton>,
-              <MyButton href={`/admin/sponsors/${params.row.extId}`} color="secondary" variant="contained">
+              <MyButton href={`/admin/sponsors/${params.row.extId}`} color="secondary">
                 Recap
+              </MyButton>,
+              <MyButton href={`/commande/${params.row.extId}`} color="secondary" variant="contained">
+                Lien Public
               </MyButton>,
               <>
                 {LISTE_TYPES_PACK_STANDS.includes(params.row.typePack) && (
@@ -111,7 +121,6 @@ export const Sponsors = () => {
               </>,
             ],
             align: "left",
-            width: 400,
           },
         ]}
         hideFooterPagination

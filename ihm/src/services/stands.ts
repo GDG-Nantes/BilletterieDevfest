@@ -1,5 +1,5 @@
 import { AxiosInstance } from "axios";
-import { Stand } from "../../../web-server/interfaces/types";
+import { ReservedStand, Stand } from "../../../web-server/interfaces/types";
 
 export class ServiceStands {
   client: AxiosInstance;
@@ -12,7 +12,7 @@ export class ServiceStands {
     return this.client.get<Stand[]>(`/stands`).then((res) => res.data);
   }
 
-  saveChoice(idCommande: string, idStand: string, typeMoquette: string): Promise<unknown> {
-    return this.client.post(`/stands/${idCommande}`, { idStand, typeMoquette });
+  saveChoice(idCommande: string, data: ReservedStand): Promise<unknown> {
+    return this.client.post(`/stands/${idCommande}`, data);
   }
 }

@@ -1,48 +1,42 @@
-import { AppBar, Button, Container, Grid, Stack, Toolbar, Tooltip } from "@mui/material";
+import { Button, Container, Grid, Stack, TextField, Tooltip } from "@mui/material";
 import React, { MouseEventHandler, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
-import { Stand, TypePack } from "../../../../web-server/interfaces/types";
+import { ReservedStand, Stand, TypePack } from "../../../../web-server/interfaces/types";
 import { TYPES_MOQUETTE } from "../../../../web-server/interfaces/constantes";
 import { useServices } from "../../services";
 
 import "./stand-choice.scss";
 import { MyButton } from "../links";
 import classNames from "classnames";
+import { Navbar } from "../../layout/layout";
 
 export function StandChoice() {
   const { stands, isLoading: isStandsLoading } = useStandList();
-  const [typeMoquetteSelectionnee, setTypeMoquetteSelectionnee] = useState<string | null>(null);
 
   const { stands: serviceStands } = useServices();
   const { idCommande } = useParams();
   const [standChoice, setStandChoice] = useState<string | null>(null);
 
+  if (!idCommande) {
+    window.location.href = "https://devfest2023.gdgnantes.com";
+    return <></>;
+  }
   const { commande, isLoading: isCommandeLoading, error } = useCommande();
 
   useEffect(() => {
     if (commande?.stand != null) {
       setStandChoice(commande.stand.idStand);
-      setTypeMoquetteSelectionnee(commande.stand.typeMoquette);
     }
   }, [commande?.stand]);
 
-  const saveChoice = () => {
-    if (!idCommande) {
-      throw new Error("idCommande is missing");
-    }
-    if (!standChoice) {
-      throw new Error("standChoice is missing");
-    }
-    if (!typeMoquetteSelectionnee) {
-      throw new Error("typeMoquette is missing");
-    }
+  const saveChoice = (data: ReservedStand) => {
     serviceStands
-      .saveChoice(idCommande, standChoice, typeMoquetteSelectionnee)
+      .saveChoice(idCommande, data)
       .then(() => window.alert("Choix bien enregistré"))
       .catch((err) => {
-        window.alert("Une erreur s'est produit lors de l'enregistrement");
         console.error(err);
+        window.location.reload();
       });
   };
 
@@ -62,7 +56,7 @@ export function StandChoice() {
   let messageToolbar;
   const estCommandeImpayee = commande.paiement.status !== "PAYE";
   if (estCommandeImpayee) {
-    messageToolbar = `Vous ne pourrez choisir votre stand qu'après avoir payé`;
+    messageToolbar = `Vous ne pourrez choisir votre stand qu'après réception du règlement par le GDG Nantes`;
   } else if (commande.stand != null) {
     messageToolbar = `${commande.acheteur.entreprise} a déjà choisi le stand ${commande.stand.idStand}`;
   } else {
@@ -70,30 +64,22 @@ export function StandChoice() {
   }
   return (
     <>
-      <AppBar position="static">
-        <Toolbar>
-          <MyButton
-            href={`/commande/${commande.extId}`}
-            variant="outlined"
-            color="secondary"
-            style={{ marginRight: "20px" }}
-          >
-            Espace Partenaire
-          </MyButton>
-          <h1>{messageToolbar}</h1>
-        </Toolbar>
-      </AppBar>
+      <Navbar title={messageToolbar}>
+        <MyButton
+          href={`/commande/${commande.extId}`}
+          variant="outlined"
+          color="secondary"
+          style={{ marginRight: "20px" }}
+        >
+          Espace Partenaire
+        </MyButton>
+      </Navbar>
       <Stack className="stand-choice" spacing={2} style={{ marginTop: "20px" }}>
         {!estCommandeImpayee && (
-          <StandChoiceForm
-            standChoice={standChoice}
-            typeMoquetteSelectionnee={typeMoquetteSelectionnee}
-            onSave={saveChoice}
-            onSelectionMoquette={setTypeMoquetteSelectionnee}
-          />
+          <StandChoiceForm standChoice={standChoice} standCommande={commande.stand} onSave={saveChoice} />
         )}
         <Grid container spacing={2}>
-          <Grid item md={6} xs={12}>
+          <Grid item md={7} xs={12}>
             <SvgMap
               disabled={estCommandeImpayee}
               url="/map1.svg"
@@ -103,7 +89,7 @@ export function StandChoice() {
               authorizedTypes={[commande.typePack]}
             />
           </Grid>
-          <Grid item md={6} xs={12}>
+          <Grid item md={4.5} xs={12}>
             <SvgMap
               disabled={estCommandeImpayee}
               url="/map2.svg"
@@ -121,13 +107,26 @@ export function StandChoice() {
 
 const StandChoiceForm: React.FC<{
   standChoice: string | null;
-  typeMoquetteSelectionnee: string | null;
-  onSelectionMoquette: (typeMoquette: string) => void;
-  onSave: () => void;
-}> = ({ standChoice, typeMoquetteSelectionnee, onSelectionMoquette, onSave }) => {
+  standCommande?: ReservedStand;
+  onSave: (data: ReservedStand) => void;
+}> = ({ standChoice, standCommande, onSave }) => {
+  const [typeMoquetteSelectionnee, setTypeMoquetteSelectionnee] = useState<string | null>(
+    standCommande?.typeMoquette || null
+  );
+  const [email, setEmail] = useState<string>("");
+
+  const isEmailValid = /.+@.+\..+/.test(email);
+
+  function submit() {
+    if (!standChoice || !typeMoquetteSelectionnee || !isEmailValid) {
+      throw new Error("Formulaire invalide");
+    }
+    onSave({ idStand: standChoice, typeMoquette: typeMoquetteSelectionnee, email });
+  }
+
   return (
     <Container>
-      <Stack>
+      <Stack spacing={3}>
         <Stack direction="row" spacing={5} alignItems="center">
           <h2>Stand choisi:</h2>
           {standChoice != null ? <h2>{standChoice}</h2> : <span>Cliquez sur le stand souhaité ci-dessous</span>}
@@ -138,23 +137,35 @@ const StandChoiceForm: React.FC<{
           </h2>
           <Stack direction="row" spacing={5}>
             {TYPES_MOQUETTE.map((typeMoquette) => (
-              <Tooltip title={typeMoquette}>
+              <Tooltip key={typeMoquette} title={typeMoquette}>
                 <div
                   className={classNames(
                     "carre-moquette",
                     typeMoquette,
                     typeMoquette === typeMoquetteSelectionnee && "selected"
                   )}
-                  onClick={() => onSelectionMoquette(typeMoquette)}
+                  onClick={() => setTypeMoquetteSelectionnee(typeMoquette)}
                 ></div>
               </Tooltip>
             ))}
           </Stack>
         </Stack>
+        <TextField
+          required
+          focused
+          color={isEmailValid || email == "" ? "info" : "error"}
+          variant="outlined"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          label={"Email"}
+          placeholder={"Email"}
+          inputMode={"email"}
+          type={"email"}
+        />
         <div>
           <Button
-            disabled={!standChoice || !typeMoquetteSelectionnee}
-            onClick={onSave}
+            disabled={!standChoice || !typeMoquetteSelectionnee || !isEmailValid}
+            onClick={submit}
             variant="contained"
             color="secondary"
             style={{ margin: "20px 0" }}
@@ -269,7 +280,7 @@ function useStandNode({ map, stands, ref, authorizedTypes }: UseStandNodeMapProp
     // grab from DOM every "root" g node
     // we know the svg DOM structure so we can do it like this
     // for every g node, we check if we can directly determine the stand from text content
-    ref.current?.querySelectorAll("svg > g > g").forEach((group) => {
+    ref.current?.querySelectorAll("svg > g > g, svg > g > path").forEach((group) => {
       const currentPotentialStandId = (group.textContent ?? "").trim().replaceAll("\n", "");
 
       if (

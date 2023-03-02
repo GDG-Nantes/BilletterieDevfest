@@ -13,7 +13,11 @@ adminRouter.get<string, unknown, Commande[], unknown>("/commandes", async (req, 
     reservedStands.forEach((reservedStand) => {
       const commande = commandes.find((commande) => commande.extId === reservedStand.idCommande);
       if (commande != null) {
-        commande.stand = { idStand: reservedStand.idStand, typeMoquette: reservedStand.typeMoquette };
+        commande.stand = {
+          idStand: reservedStand.idStand,
+          typeMoquette: reservedStand.typeMoquette,
+          email: reservedStand.email,
+        };
       }
     });
     res.send(commandes);
