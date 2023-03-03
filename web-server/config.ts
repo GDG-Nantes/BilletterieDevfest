@@ -8,13 +8,13 @@ if (process.env.BILLETWEB_API_KEY == null) {
 if (process.env["AUTH_DISABLED"] == "true") {
   console.warn("Starting without Admin Authentication");
 }
+const localEvent = "790192"; // 2023
+// const localEvent = "798592" // 2023-test
 export const CONFIG = {
   billetweb: {
     apiKey: process.env.BILLETWEB_API_KEY,
     user: "9964",
-    // event: "524659", // 2022
-    event: process.env.BILLETWEB_EVENT_ID || "798592", // 2023-test
-    // event: "790192", // 2023
+    event: process.env.BILLETWEB_EVENT_ID || localEvent,
   },
   mailgun: {
     apiKey: process.env.MAILGUN_API_KEY,

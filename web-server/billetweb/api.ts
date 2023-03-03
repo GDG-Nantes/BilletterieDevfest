@@ -84,7 +84,7 @@ function convertirAttendeesEnCommandes(attendees: Attendee[]) {
 
     // Les sponsors peuvent avoir acheté une option après le premier achat qui contenait le partenariat
     // dans ce cas là, le lien est fait par le champ entreprise
-    if (commande == null) {
+    if (commande == null && typeTicket != "IGNORE") {
       commande = Object.values(commandes).find(
         (commande) => commande.acheteur.entreprise === attendee.custom_order.Entreprise
       ) as Commande | null;
@@ -153,14 +153,16 @@ function calculerTypeTicket(ticket: string): OptionsPack | TypePack | "IGNORE" {
     "Electricité : Bloc de 21 KW à la place de 3 KW": "ELECTRICITE_21kW",
 
     // Pour information, les autres éléments de billetweb
+    "Inscription en liste d'attente": "IGNORE",
     "AfterParty 1/2": "IGNORE",
     "AfterParty 2/2": "IGNORE",
+    "Afterparty - Logistique": "IGNORE",
     "Pas de stand": "IGNORE",
     "Stand 9m2": "IGNORE",
     "Stand 12m2": "IGNORE",
     "Stand 18m2": "IGNORE",
     "Electricité : 3KW": "IGNORE",
-    "Afterparty - Logistique": "IGNORE",
+    "Stand des communautés": "IGNORE",
     "Pass 2 jours Devfest Nantes": "IGNORE",
     "Diffusion d'offre d'emploi": "IGNORE",
     "Votre logo sur la page partenaire du Devfest": "IGNORE",
