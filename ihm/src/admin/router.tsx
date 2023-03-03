@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { Authenticated } from "../auth";
 import { RecapSponsor } from "../components/partenaires/recap-sponsor";
 import { Sponsors } from "./sponsors";
-import { PageStandMaps } from "./map";
+import { PageStandMapsAdmin } from "./map";
 
 export const RouterAdmin = () => (
   <Routes>
@@ -12,7 +12,7 @@ export const RouterAdmin = () => (
         <Route index element={<Sponsors />} />
         <Route path=":idCommande" element={<RecapSponsor displayJson />} />
       </Route>
-      <Route path="map" element={<PageStandMaps />} />
+      <Route path="map" element={<PageStandMapsAdmin />} />
     </Route>
   </Routes>
 );
